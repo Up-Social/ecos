@@ -2,30 +2,21 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/Badge";
+import {
+  ALCANCE_TERRITORIAL_LABELS,
+  ESTADO_RECOMENDACION_LABELS,
+} from "@/lib/enums";
 import type {
   RecomendacionConRelaciones,
-  AlcanceRecomendacion,
   EstadoRecomendacion,
 } from "@/lib/supabase/types";
 
-const alcanceLabel: Record<AlcanceRecomendacion, string> = {
-  local: "Local",
-  provincial: "Provincial",
-  autonomico: "Autonómico",
-  estatal: "Estatal",
-  pluriautonomico: "Pluriautonómico",
-};
-
-const estadoLabel: Record<EstadoRecomendacion, string> = {
-  formulada: "Formulada",
-  en_proceso: "En proceso",
-  adoptada: "Adoptada",
-  descartada: "Descartada",
-};
+const alcanceLabel = ALCANCE_TERRITORIAL_LABELS;
+const estadoLabel = ESTADO_RECOMENDACION_LABELS;
 
 const estadoTone: Record<EstadoRecomendacion, "slate" | "blue" | "green" | "red"> = {
   formulada: "slate",
-  en_proceso: "blue",
+  en_proceso_adopcion: "blue",
   adoptada: "green",
   descartada: "red",
 };
@@ -34,10 +25,13 @@ export const recomendacionesColumns: ColumnDef<RecomendacionConRelaciones>[] = [
   {
     accessorKey: "titulo",
     header: "Título",
+    meta: { width: "50%" },
     cell: ({ row }) => (
       <div>
-        <div className="font-medium text-slate-900">{row.original.titulo}</div>
-        <div className="line-clamp-1 text-xs text-slate-500">
+        <div className="whitespace-normal break-words font-medium text-slate-900">
+          {row.original.titulo}
+        </div>
+        <div className="line-clamp-2 text-xs text-slate-500">
           {row.original.descripcion}
         </div>
       </div>
@@ -46,6 +40,7 @@ export const recomendacionesColumns: ColumnDef<RecomendacionConRelaciones>[] = [
   {
     accessorKey: "alcance",
     header: "Alcance",
+    meta: { width: "18%" },
     cell: ({ row }) => {
       const a = row.original.alcance;
       return a ? (
@@ -58,6 +53,7 @@ export const recomendacionesColumns: ColumnDef<RecomendacionConRelaciones>[] = [
   {
     accessorKey: "estado",
     header: "Estado",
+    meta: { width: "18%" },
     cell: ({ row }) => {
       const e = row.original.estado;
       if (!e) return <span className="text-slate-400">—</span>;
@@ -67,6 +63,7 @@ export const recomendacionesColumns: ColumnDef<RecomendacionConRelaciones>[] = [
   {
     id: "hallazgos",
     header: "Hallazgos",
+    meta: { width: "14%" },
     cell: ({ row }) => {
       const n = row.original.hallazgos.length;
       return n > 0 ? (

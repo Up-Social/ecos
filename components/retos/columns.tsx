@@ -8,16 +8,20 @@ export const retosColumns: ColumnDef<RetoConRelaciones>[] = [
   {
     accessorKey: "nombre",
     header: "Nombre",
+    meta: { width: "45%" },
     cell: ({ row }) => (
-      <span className="font-medium text-slate-900">{row.original.nombre}</span>
+      <span className="block whitespace-normal break-words font-medium text-slate-900">
+        {row.original.nombre}
+      </span>
     ),
   },
   {
     accessorKey: "descripcion",
     header: "Descripción",
+    meta: { width: "45%" },
     cell: ({ row }) =>
       row.original.descripcion ? (
-        <span className="line-clamp-1 text-slate-700">
+        <span className="line-clamp-2 text-slate-700">
           {row.original.descripcion}
         </span>
       ) : (
@@ -27,6 +31,7 @@ export const retosColumns: ColumnDef<RetoConRelaciones>[] = [
   {
     id: "misiones",
     header: "Misiones",
+    meta: { width: "10%" },
     cell: ({ row }) => {
       const n = row.original.misiones.length;
       return n > 0 ? (

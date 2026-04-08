@@ -6,9 +6,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Trash2 } from "lucide-react";
 import { Field, Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { MultiCheckbox } from "@/components/ui/MultiCheckbox";
 import { Button } from "@/components/ui/Button";
 import { proyectoSchema, type ProyectoFormValues } from "@/lib/schemas/proyecto";
-import type { ProyectoConLider, Agente } from "@/lib/supabase/types";
+import {
+  ESTADO_PROYECTO,
+  ESTADO_PROYECTO_LABELS,
+  GRUPOS_POBLACION,
+  GRUPOS_POBLACION_LABELS,
+  toOptions,
+} from "@/lib/enums";
+import type { ProyectoConLider, Agente, GrupoPoblacion } from "@/lib/supabase/types";
 
 interface Props {
   proyecto?: ProyectoConLider | null;
@@ -19,12 +27,11 @@ interface Props {
   submitting?: boolean;
 }
 
-const estadoOptions = [
-  { value: "diseno", label: "Diseño" },
-  { value: "activo", label: "Activo" },
-  { value: "finalizado", label: "Finalizado" },
-  { value: "escalado", label: "Escalado" },
-];
+const estadoOptions = toOptions(ESTADO_PROYECTO, ESTADO_PROYECTO_LABELS);
+const gruposPoblacionOptions = toOptions(
+  GRUPOS_POBLACION,
+  GRUPOS_POBLACION_LABELS,
+);
 
 export function ProyectoForm({
   proyecto,
@@ -48,6 +55,9 @@ export function ProyectoForm({
       agente_lider_id: "",
       estado: null,
       financiador: "",
+      grupos_poblacion: [],
+      ccaa: "",
+      enlace_1: "",
     },
   });
 
@@ -59,6 +69,9 @@ export function ProyectoForm({
         agente_lider_id: proyecto.agente_lider_id,
         estado: proyecto.estado,
         financiador: proyecto.financiador ?? "",
+        grupos_poblacion: proyecto.grupos_poblacion ?? [],
+        ccaa: proyecto.ccaa ?? "",
+        enlace_1: proyecto.enlace_1 ?? "",
       });
     } else {
       reset({
@@ -67,6 +80,9 @@ export function ProyectoForm({
         agente_lider_id: "",
         estado: null,
         financiador: "",
+        grupos_poblacion: [],
+        ccaa: "",
+        enlace_1: "",
       });
     }
   }, [proyecto, reset]);
@@ -129,6 +145,28 @@ export function ProyectoForm({
 
       <Field label="Financiador">
         <Input {...register("financiador")} placeholder="Entidad financiadora" />
+      </Field>
+
+      <Field label="CCAA">
+        <Input {...register("ccaa")} placeholder="Comunidad autónoma" />
+      </Field>
+
+      <Field label="Enlace">
+        <Input {...register("enlace_1")} placeholder="https://…" />
+      </Field>
+
+      <Field label="Grupos de población">
+        <Controller
+          name="grupos_poblacion"
+          control={control}
+          render={({ field }) => (
+            <MultiCheckbox
+              options={gruposPoblacionOptions}
+              value={(field.value ?? []) as GrupoPoblacion[]}
+              onChange={field.onChange}
+            />
+          )}
+        />
       </Field>
 
       <div className="flex items-center justify-between gap-2 pt-2">

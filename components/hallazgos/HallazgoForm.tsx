@@ -8,6 +8,13 @@ import { Field, Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { hallazgoSchema, type HallazgoFormValues } from "@/lib/schemas/hallazgo";
+import {
+  NIVEL_EVIDENCIA,
+  NIVEL_EVIDENCIA_LABELS,
+  ESTADO_VALIDACION,
+  ESTADO_VALIDACION_LABELS,
+  toOptions,
+} from "@/lib/enums";
 import type {
   HallazgoConRelaciones,
   Innovacion,
@@ -22,12 +29,11 @@ interface Props {
   submitting?: boolean;
 }
 
-const evidenciaOptions = [
-  { value: "practica_documentada", label: "Práctica documentada" },
-  { value: "datos_sistematicos", label: "Datos sistemáticos" },
-  { value: "evaluacion_estructurada", label: "Evaluación estructurada" },
-  { value: "evidencia_replicada", label: "Evidencia replicada" },
-];
+const evidenciaOptions = toOptions(NIVEL_EVIDENCIA, NIVEL_EVIDENCIA_LABELS);
+const estadoValidacionOptions = toOptions(
+  ESTADO_VALIDACION,
+  ESTADO_VALIDACION_LABELS,
+);
 
 export function HallazgoForm({
   hallazgo,
@@ -53,6 +59,7 @@ export function HallazgoForm({
       evidencia_cuantitativa: "",
       fuente: "",
       enlace: "",
+      estado_validacion: null,
       validado: false,
     },
   });
@@ -67,6 +74,8 @@ export function HallazgoForm({
         evidencia_cuantitativa: hallazgo.evidencia_cuantitativa ?? "",
         fuente: hallazgo.fuente ?? "",
         enlace: hallazgo.enlace ?? "",
+        estado_validacion:
+          hallazgo.estado_validacion ?? (hallazgo.validado ? "validado" : null),
         validado: hallazgo.validado,
       });
     } else {
@@ -78,6 +87,7 @@ export function HallazgoForm({
         evidencia_cuantitativa: "",
         fuente: "",
         enlace: "",
+        estado_validacion: null,
         validado: false,
       });
     }
@@ -155,15 +165,19 @@ export function HallazgoForm({
         </Field>
       </div>
 
-      <Field label="">
-        <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
-          <input
-            type="checkbox"
-            {...register("validado")}
-            className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-          />
-          <span>Hallazgo validado</span>
-        </label>
+      <Field label="Estado de validación">
+        <Controller
+          name="estado_validacion"
+          control={control}
+          render={({ field }) => (
+            <Select
+              {...field}
+              value={field.value ?? ""}
+              options={estadoValidacionOptions}
+              placeholder="—"
+            />
+          )}
+        />
       </Field>
 
       <div className="flex items-center justify-between gap-2 pt-2">

@@ -32,9 +32,19 @@ export async function getAgente(id: string) {
 function normalize(values: AgenteFormValues) {
   return {
     nombre: values.nombre,
+    descripcion: values.descripcion || null,
     tipo_agente: values.tipo_agente || null,
     email: values.email ? values.email : null,
     web: values.web ? values.web : null,
+    municipio_sede: values.municipio_sede || null,
+    rol_ecosistema: values.rol_ecosistema?.length
+      ? values.rol_ecosistema
+      : null,
+    grupos_poblacion: values.grupos_poblacion?.length
+      ? values.grupos_poblacion
+      : null,
+    personas_implicadas: values.personas_implicadas ?? null,
+    presupuesto: values.presupuesto ?? null,
   };
 }
 

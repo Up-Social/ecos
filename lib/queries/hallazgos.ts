@@ -31,7 +31,9 @@ function normalize(values: HallazgoFormValues) {
     evidencia_cuantitativa: values.evidencia_cuantitativa || null,
     fuente: values.fuente || null,
     enlace: values.enlace ? values.enlace : null,
-    validado: values.validado ?? false,
+    estado_validacion: values.estado_validacion || null,
+    // Mantenemos validado para compatibilidad con el trigger antiguo.
+    validado: values.estado_validacion === "validado",
   };
 }
 

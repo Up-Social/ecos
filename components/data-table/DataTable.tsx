@@ -84,35 +84,41 @@ export function DataTable<TData>({
       </div>
 
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <table className="w-full text-sm">
+        <table className="w-full table-fixed text-sm">
           <thead className="border-b border-slate-200 bg-slate-50">
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id}>
-                {hg.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wider text-slate-500"
-                  >
-                    {header.isPlaceholder ? null : (
-                      <button
-                        type="button"
-                        onClick={header.column.getToggleSortingHandler()}
-                        className={cn(
-                          "inline-flex items-center gap-1",
-                          header.column.getCanSort() && "cursor-pointer hover:text-slate-700",
-                        )}
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                        {header.column.getCanSort() && (
-                          <ArrowUpDown className="h-3 w-3" />
-                        )}
-                      </button>
-                    )}
-                  </th>
-                ))}
+                {hg.headers.map((header) => {
+                  const meta = header.column.columnDef.meta as
+                    | { width?: string; cellClassName?: string }
+                    | undefined;
+                  return (
+                    <th
+                      key={header.id}
+                      style={meta?.width ? { width: meta.width } : undefined}
+                      className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wider text-slate-500"
+                    >
+                      {header.isPlaceholder ? null : (
+                        <button
+                          type="button"
+                          onClick={header.column.getToggleSortingHandler()}
+                          className={cn(
+                            "inline-flex items-center gap-1",
+                            header.column.getCanSort() && "cursor-pointer hover:text-slate-700",
+                          )}
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                          {header.column.getCanSort() && (
+                            <ArrowUpDown className="h-3 w-3" />
+                          )}
+                        </button>
+                      )}
+                    </th>
+                  );
+                })}
               </tr>
             ))}
           </thead>
@@ -136,11 +142,22 @@ export function DataTable<TData>({
                     onRowClick && "cursor-pointer hover:bg-slate-50",
                   )}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-2.5 text-slate-700">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
+                  {row.getVisibleCells().map((cell) => {
+                    const meta = cell.column.columnDef.meta as
+                      | { width?: string; cellClassName?: string }
+                      | undefined;
+                    return (
+                      <td
+                        key={cell.id}
+                        className={cn(
+                          "px-4 py-2.5 align-top text-slate-700",
+                          meta?.cellClassName,
+                        )}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))
             )}

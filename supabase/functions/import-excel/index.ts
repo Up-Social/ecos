@@ -205,10 +205,10 @@ const TIPO_AGENTE_MAP: Record<string, string> = {
 };
 
 const ESTADO_PROYECTO_MAP: Record<string, string> = {
-  "diseño": "diseno",
-  "diseno": "diseno",
-  "en diseño": "diseno",
-  "en_diseno": "diseno",
+  "diseño": "en_diseno",
+  "diseno": "en_diseno",
+  "en diseño": "en_diseno",
+  "en_diseno": "en_diseno",
   "activo": "activo",
   "finalizado": "finalizado",
   "escalado": "escalado",
@@ -259,14 +259,72 @@ const ALCANCE_RECOMENDACION_MAP: Record<string, string> = {
 
 const ESTADO_RECOMENDACION_MAP: Record<string, string> = {
   "formulada": "formulada",
-  "en proceso": "en_proceso",
-  "en_proceso": "en_proceso",
-  "en proceso de adopcion": "en_proceso",
-  "en proceso de adopción": "en_proceso",
-  "en_proceso_adopcion": "en_proceso",
+  "en proceso": "en_proceso_adopcion",
+  "en_proceso": "en_proceso_adopcion",
+  "en proceso de adopcion": "en_proceso_adopcion",
+  "en proceso de adopción": "en_proceso_adopcion",
+  "en_proceso_adopcion": "en_proceso_adopcion",
   "adoptada": "adoptada",
   "descartada": "descartada",
 };
+
+// Enums adicionales de LISTAS
+const ROL_ECOSISTEMA_VALUES = new Set([
+  "financia", "diseña", "implementa", "investiga",
+  "coordina", "evalúa", "acompaña", "regula",
+]);
+
+const GRUPOS_POBLACION_VALUES = new Set([
+  "infancia", "adolescencia", "jovenes", "personas_mayores",
+  "migrantes", "personas_discapacidad", "familias",
+  "personas_sin_hogar", "mujeres", "otros",
+]);
+
+const RANGO_PARTICIPANTES_VALUES = new Set([
+  "1-10", "11-50", "51-200", "201-1000", "mas_de_1000",
+]);
+
+const ESTADO_VALIDACION_MAP: Record<string, string> = {
+  "propuesto": "propuesto",
+  "validado": "validado",
+  "rechazado": "rechazado",
+};
+
+const AMBITO_RECOMENDACION_VALUES = new Set([
+  "normativo", "financiero", "organizativo", "programatico", "cultural",
+]);
+
+/** Mapa de valores del Excel (ej. "Replicacion territorial") → keys de BD */
+const OPCIONES_ESCALADO_MAP: Record<string, string> = {
+  "replicacion territorial": "replicacion_territorial",
+  "replicación territorial": "replicacion_territorial",
+  "ampliacion de poblacion": "ampliacion_poblacion",
+  "ampliación de población": "ampliacion_poblacion",
+  "integracion en politica publica existente": "integracion_politica_existente",
+  "integración en política pública existente": "integracion_politica_existente",
+  "generacion de nueva politica publica": "generacion_nueva_politica",
+  "generación de nueva política pública": "generacion_nueva_politica",
+  "consolidacion organizativa": "consolidacion_organizativa",
+  "consolidación organizativa": "consolidacion_organizativa",
+  "transferencia a otros sectores": "transferencia_otros_sectores",
+};
+
+/** Filtra un array de tokens manteniendo solo los que estén en el set permitido. */
+function filterEnum(values: string[], allowed: Set<string>): string[] {
+  return values
+    .map((v) => v.trim())
+    .filter((v) => allowed.has(v));
+}
+
+/** Mapea una lista de tokens a sus keys canónicas usando un map; ignora los no mapeados. */
+function mapEnumList(values: string[], map: Record<string, string>): string[] {
+  const out: string[] = [];
+  for (const v of values) {
+    const key = map[normKey(v)];
+    if (key) out.push(key);
+  }
+  return Array.from(new Set(out));
+}
 
 function mapEnum(
   value: unknown,
@@ -471,6 +529,8 @@ Deno.serve(async (req) => {
         nombre: toStr(r.Nombre_mision) ?? "(sin nombre)",
         descripcion: toStr(r.Descripcion),
         problema: toStr(r.Problema_Justificacion),
+        fuente_informacion: toStr(r.Fuente_informacion),
+        notas_internas: toStr(r.Notas_internas),
       }));
       const { rows: inserted, written } = await upsertByExternalId<{
         id: string;
@@ -493,6 +553,11 @@ Deno.serve(async (req) => {
         personas_implicadas: toInt(r.Personas_implicadas),
         presupuesto: toNum(r.Volumen_inversion_euros),
         web: toStr(r.Web),
+        municipio_sede: toStr(r.Municipio_sede),
+        rol_ecosistema: filterEnum(splitList(r.Rol_ecosistema), ROL_ECOSISTEMA_VALUES),
+        grupos_poblacion: filterEnum(splitList(r.Grupos_poblacion), GRUPOS_POBLACION_VALUES),
+        interconexiones_ids: toStr(r.Interconexiones_IDs),
+        fuente_informacion: toStr(r.Fuente_informacion),
       }));
       const { rows: inserted, written } = await upsertByExternalId<{
         id: string;
@@ -512,6 +577,7 @@ Deno.serve(async (req) => {
         external_id: toStr(r.ID_Reto),
         nombre: toStr(r.Nombre_reto) ?? "(sin nombre)",
         descripcion: toStr(r.Descripcion),
+        fuente_informacion: toStr(r.Fuente_informacion),
       }));
       const { rows: inserted, written } = await upsertByExternalId<{
         id: string;
@@ -599,6 +665,9 @@ Deno.serve(async (req) => {
           fecha_fin: toDate(p.Fecha_fin, "end"),
           presupuesto: toNum(p.Presupuesto_euros),
           financiador: toStr(p.Financiador),
+          grupos_poblacion: filterEnum(splitList(p.Grupos_poblacion), GRUPOS_POBLACION_VALUES),
+          ccaa: toStr(p.CCAA),
+          enlace_1: toStr(p.Enlace_1),
         });
       }
 
@@ -646,6 +715,10 @@ Deno.serve(async (req) => {
         const projExt = toStr(i.ID_Proyecto);
         const projUuid = projExt ? proyectoIds.get(projExt) : null;
         if (!projUuid) continue;
+        const rangoRaw = toStr(i.Rango_participantes);
+        const rango = rangoRaw && RANGO_PARTICIPANTES_VALUES.has(rangoRaw)
+          ? rangoRaw
+          : null;
         rows.push({
           external_id: toStr(i.ID_Innovacion),
           nombre: toStr(i.Nombre_innovacion) ?? "(sin nombre)",
@@ -653,7 +726,10 @@ Deno.serve(async (req) => {
           proyecto_id: projUuid,
           estado: mapEnum(i.Estado_experimentacion, ESTADO_INNOVACION_MAP),
           nivel_impacto: mapEnum(i.Nivel_impacto, NIVEL_IMPACTO_MAP),
-          n_participantes: toStr(i.Rango_participantes),
+          n_participantes: rango,
+          grupos_poblacion: filterEnum(splitList(i.Grupos_poblacion), GRUPOS_POBLACION_VALUES),
+          opciones_escalado: mapEnumList(splitList(i.Opciones_escalado), OPCIONES_ESCALADO_MAP),
+          enlace_referencia: toStr(i.Enlace_referencia),
         });
       }
 
@@ -708,6 +784,7 @@ Deno.serve(async (req) => {
         const titulo = toStr(h.Titulo_hallazgo) ?? "(sin título)";
         const descripcion = toStr(h.Descripcion) ?? "(sin descripción)";
 
+        const estadoVal = mapEnum(h.Estado_validacion, ESTADO_VALIDACION_MAP);
         rows.push({
           external_id: toStr(h.ID_Hallazgo),
           titulo,
@@ -717,7 +794,8 @@ Deno.serve(async (req) => {
           fuente: toStr(h.Fuente),
           enlace: toStr(h.Enlace_fuente),
           innovacion_id: innUuid,
-          validado: toBool(h.Estado_validacion, ["validado"]),
+          estado_validacion: estadoVal,
+          validado: estadoVal === "validado",
         });
       }
 
@@ -737,7 +815,7 @@ Deno.serve(async (req) => {
         external_id: toStr(r.ID_Recomendacion),
         titulo: toStr(r.Titulo_recomendacion) ?? "(sin título)",
         descripcion: toStr(r.Descripcion) ?? "(sin descripción)",
-        ambito: splitList(r.Ambito_aplicacion),
+        ambito: filterEnum(splitList(r.Ambito_aplicacion), AMBITO_RECOMENDACION_VALUES),
         destinatarios: toStr(r.Destinatarios),
         alcance: mapEnum(r.Alcance_territorial, ALCANCE_RECOMENDACION_MAP),
         estado: mapEnum(r.Estado, ESTADO_RECOMENDACION_MAP),

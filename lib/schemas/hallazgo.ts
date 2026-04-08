@@ -1,11 +1,8 @@
 import { z } from "zod";
+import { NIVEL_EVIDENCIA, ESTADO_VALIDACION } from "@/lib/enums";
 
-export const nivelEvidenciaEnum = z.enum([
-  "practica_documentada",
-  "datos_sistematicos",
-  "evaluacion_estructurada",
-  "evidencia_replicada",
-]);
+export const nivelEvidenciaEnum = z.enum(NIVEL_EVIDENCIA);
+export const estadoValidacionEnum = z.enum(ESTADO_VALIDACION);
 
 export const hallazgoSchema = z.object({
   titulo: z.string().min(2, "El título es obligatorio"),
@@ -20,6 +17,8 @@ export const hallazgoSchema = z.object({
     .optional()
     .nullable()
     .or(z.literal("")),
+  estado_validacion: estadoValidacionEnum.nullable().optional(),
+  // Derivado de estado_validacion para compatibilidad con código antiguo
   validado: z.boolean().default(false),
 });
 

@@ -11,6 +11,12 @@ import {
   getRecomendacionesEstrategicas,
   type RecomendacionLite,
 } from "@/lib/queries/strategic";
+import {
+  ESTADO_RECOMENDACION_LABELS,
+  ALCANCE_TERRITORIAL_LABELS,
+  ESTADO_RECOMENDACION,
+  ALCANCE_TERRITORIAL,
+} from "@/lib/enums";
 import type {
   EstadoRecomendacion,
   AlcanceRecomendacion,
@@ -21,45 +27,23 @@ import { cn } from "@/lib/utils";
 // Configuración de estados y alcances
 // =============================================================================
 
-const estadoLabel: Record<EstadoRecomendacion, string> = {
-  formulada: "Formulada",
-  en_proceso: "En proceso",
-  adoptada: "Adoptada",
-  descartada: "Descartada",
-};
+const estadoLabel = ESTADO_RECOMENDACION_LABELS;
 
 const estadoTone: Record<
   EstadoRecomendacion,
   "slate" | "blue" | "green" | "red"
 > = {
   formulada: "slate",
-  en_proceso: "blue",
+  en_proceso_adopcion: "blue",
   adoptada: "green",
   descartada: "red",
 };
 
-const alcanceLabel: Record<AlcanceRecomendacion, string> = {
-  local: "Local",
-  provincial: "Provincial",
-  autonomico: "Autonómico",
-  estatal: "Estatal",
-  pluriautonomico: "Pluriautonómico",
-};
+const alcanceLabel = ALCANCE_TERRITORIAL_LABELS;
 
 // Orden canónico para los grupos
-const ESTADO_ORDER: EstadoRecomendacion[] = [
-  "formulada",
-  "en_proceso",
-  "adoptada",
-  "descartada",
-];
-const ALCANCE_ORDER: AlcanceRecomendacion[] = [
-  "local",
-  "provincial",
-  "autonomico",
-  "estatal",
-  "pluriautonomico",
-];
+const ESTADO_ORDER: EstadoRecomendacion[] = [...ESTADO_RECOMENDACION];
+const ALCANCE_ORDER: AlcanceRecomendacion[] = [...ALCANCE_TERRITORIAL];
 
 type GroupBy = "none" | "estado" | "alcance";
 

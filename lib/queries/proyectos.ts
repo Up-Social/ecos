@@ -64,6 +64,11 @@ function normalize(values: ProyectoFormValues) {
     agente_lider_id: values.agente_lider_id,
     estado: values.estado || null,
     financiador: values.financiador || null,
+    grupos_poblacion: values.grupos_poblacion?.length
+      ? values.grupos_poblacion
+      : null,
+    ccaa: values.ccaa || null,
+    enlace_1: values.enlace_1 || null,
   };
 }
 

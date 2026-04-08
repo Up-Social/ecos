@@ -13,8 +13,10 @@ import {
   Megaphone,
   FileSpreadsheet,
   ListChecks,
+  UserCog,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isSuperadmin, type RoleKey } from "@/lib/auth/roles";
 
 interface NavItem {
   href: string;
@@ -25,6 +27,8 @@ interface NavItem {
 interface NavSection {
   title: string;
   items: NavItem[];
+  /** Roles que pueden ver esta sección. Si es undefined, todos los roles del panel la ven. */
+  visibleFor?: (roles: RoleKey[]) => boolean;
 }
 
 const sections: NavSection[] = [
@@ -35,17 +39,17 @@ const sections: NavSection[] = [
     ],
   },
   {
-    title: "Mapeo",
-    items: [
-      { href: "/dashboard/agentes", label: "Agentes", icon: Users },
-      { href: "/dashboard/proyectos", label: "Proyectos", icon: FolderKanban },
-    ],
-  },
-  {
     title: "Propósito",
     items: [
       { href: "/dashboard/misiones", label: "Misiones", icon: Target },
       { href: "/dashboard/retos", label: "Retos", icon: Flag },
+    ],
+  },
+  {
+    title: "Mapeo",
+    items: [
+      { href: "/dashboard/agentes", label: "Agentes", icon: Users },
+      { href: "/dashboard/proyectos", label: "Proyectos", icon: FolderKanban },
     ],
   },
   {
@@ -55,28 +59,32 @@ const sections: NavSection[] = [
     ],
   },
   {
-    title: "Aprendizaje",
+    title: "Aprendizaje y Transferencia",
     items: [
       { href: "/dashboard/hallazgos", label: "Hallazgos", icon: Microscope },
-    ],
-  },
-  {
-    title: "Transferencia",
-    items: [
       { href: "/dashboard/recomendaciones", label: "Recomendaciones", icon: Megaphone },
     ],
   },
   {
-    title: "Importación",
+    title: "Administración",
+    visibleFor: isSuperadmin,
     items: [
+      { href: "/dashboard/usuarios", label: "Usuarios", icon: UserCog },
       { href: "/dashboard/importar", label: "Importar Excel", icon: FileSpreadsheet },
       { href: "/dashboard/logs", label: "Logs", icon: ListChecks },
     ],
   },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  roles: RoleKey[];
+}
+
+export function Sidebar({ roles }: SidebarProps) {
   const pathname = usePathname();
+  const visibleSections = sections.filter(
+    (s) => !s.visibleFor || s.visibleFor(roles),
+  );
 
   return (
     <aside className="flex h-screen w-60 flex-col border-r border-slate-200 bg-white">
@@ -90,7 +98,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2 py-4">
-        {sections.map((section, idx) => (
+        {visibleSections.map((section, idx) => (
           <div key={idx} className="mb-4">
             {section.title && (
               <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">

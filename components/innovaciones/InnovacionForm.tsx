@@ -12,10 +12,26 @@ import {
   innovacionSchema,
   type InnovacionFormValues,
 } from "@/lib/schemas/innovacion";
+import { MultiCheckbox } from "@/components/ui/MultiCheckbox";
+import {
+  ESTADO_EXPERIMENTACION,
+  ESTADO_EXPERIMENTACION_LABELS,
+  NIVEL_IMPACTO,
+  NIVEL_IMPACTO_LABELS,
+  RANGO_PARTICIPANTES,
+  RANGO_PARTICIPANTES_LABELS,
+  GRUPOS_POBLACION,
+  GRUPOS_POBLACION_LABELS,
+  OPCIONES_ESCALADO,
+  OPCIONES_ESCALADO_LABELS,
+  toOptions,
+} from "@/lib/enums";
 import type {
   InnovacionConRelaciones,
   Proyecto,
   Reto,
+  GrupoPoblacion,
+  OpcionEscalado,
 } from "@/lib/supabase/types";
 
 interface Props {
@@ -28,21 +44,23 @@ interface Props {
   submitting?: boolean;
 }
 
-const estadoOptions = [
-  { value: "diseno", label: "Diseño" },
-  { value: "prototipo", label: "Prototipo" },
-  { value: "implementacion", label: "Implementación" },
-  { value: "testeado", label: "Testeado" },
-  { value: "escalado", label: "Escalado" },
-];
-
-const impactoOptions = [
-  { value: "comunitaria", label: "Comunitaria" },
-  { value: "local", label: "Local" },
-  { value: "autonomica", label: "Autonómica" },
-  { value: "estatal", label: "Estatal" },
-  { value: "internacional", label: "Internacional" },
-];
+const estadoOptions = toOptions(
+  ESTADO_EXPERIMENTACION,
+  ESTADO_EXPERIMENTACION_LABELS,
+);
+const impactoOptions = toOptions(NIVEL_IMPACTO, NIVEL_IMPACTO_LABELS);
+const rangoOptions = toOptions(
+  RANGO_PARTICIPANTES,
+  RANGO_PARTICIPANTES_LABELS,
+);
+const gruposPoblacionOptions = toOptions(
+  GRUPOS_POBLACION,
+  GRUPOS_POBLACION_LABELS,
+);
+const opcionesEscaladoOptions = toOptions(
+  OPCIONES_ESCALADO,
+  OPCIONES_ESCALADO_LABELS,
+);
 
 export function InnovacionForm({
   innovacion,
@@ -67,7 +85,10 @@ export function InnovacionForm({
       proyecto_id: "",
       estado: null,
       nivel_impacto: null,
-      n_participantes: "",
+      n_participantes: null,
+      grupos_poblacion: [],
+      opciones_escalado: [],
+      enlace_referencia: "",
       retos_ids: [],
     },
   });
@@ -80,7 +101,10 @@ export function InnovacionForm({
         proyecto_id: innovacion.proyecto_id,
         estado: innovacion.estado,
         nivel_impacto: innovacion.nivel_impacto,
-        n_participantes: innovacion.n_participantes ?? "",
+        n_participantes: innovacion.n_participantes,
+        grupos_poblacion: innovacion.grupos_poblacion ?? [],
+        opciones_escalado: innovacion.opciones_escalado ?? [],
+        enlace_referencia: innovacion.enlace_referencia ?? "",
         retos_ids: innovacion.retos.map((r) => r.id),
       });
     } else {
@@ -90,7 +114,10 @@ export function InnovacionForm({
         proyecto_id: "",
         estado: null,
         nivel_impacto: null,
-        n_participantes: "",
+        n_participantes: null,
+        grupos_poblacion: [],
+        opciones_escalado: [],
+        enlace_referencia: "",
         retos_ids: [],
       });
     }
@@ -181,10 +208,55 @@ export function InnovacionForm({
         </Field>
       </div>
 
-      <Field label="Nº de participantes">
+      <Field label="Rango de participantes">
+        <Controller
+          name="n_participantes"
+          control={control}
+          render={({ field }) => (
+            <Select
+              {...field}
+              value={field.value ?? ""}
+              options={rangoOptions}
+              placeholder="—"
+            />
+          )}
+        />
+      </Field>
+
+      <Field label="Grupos de población">
+        <Controller
+          name="grupos_poblacion"
+          control={control}
+          render={({ field }) => (
+            <MultiCheckbox
+              options={gruposPoblacionOptions}
+              value={(field.value ?? []) as GrupoPoblacion[]}
+              onChange={field.onChange}
+            />
+          )}
+        />
+      </Field>
+
+      <Field label="Opciones de escalado">
+        <Controller
+          name="opciones_escalado"
+          control={control}
+          render={({ field }) => (
+            <MultiCheckbox
+              options={opcionesEscaladoOptions}
+              value={(field.value ?? []) as OpcionEscalado[]}
+              onChange={field.onChange}
+              columns={1}
+            />
+          )}
+        />
+      </Field>
+
+      <Field label="Enlace de referencia">
         <Input
-          {...register("n_participantes")}
-          placeholder="Texto libre (p. ej. '50 personas')"
+          type="url"
+          {...register("enlace_referencia")}
+          placeholder="https://…"
         />
       </Field>
 

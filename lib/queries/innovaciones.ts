@@ -84,6 +84,13 @@ function normalize(values: InnovacionFormValues) {
     estado: values.estado || null,
     nivel_impacto: values.nivel_impacto || null,
     n_participantes: values.n_participantes || null,
+    grupos_poblacion: values.grupos_poblacion?.length
+      ? values.grupos_poblacion
+      : null,
+    opciones_escalado: values.opciones_escalado?.length
+      ? values.opciones_escalado
+      : null,
+    enlace_referencia: values.enlace_referencia || null,
   };
 }
 

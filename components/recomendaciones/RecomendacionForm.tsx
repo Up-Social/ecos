@@ -7,12 +7,26 @@ import { Trash2 } from "lucide-react";
 import { Field, Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { MultiSelect } from "@/components/ui/MultiSelect";
+import { MultiCheckbox } from "@/components/ui/MultiCheckbox";
 import { Button } from "@/components/ui/Button";
 import {
   recomendacionSchema,
   type RecomendacionFormValues,
 } from "@/lib/schemas/recomendacion";
-import type { RecomendacionConRelaciones, Hallazgo } from "@/lib/supabase/types";
+import {
+  ALCANCE_TERRITORIAL,
+  ALCANCE_TERRITORIAL_LABELS,
+  ESTADO_RECOMENDACION,
+  ESTADO_RECOMENDACION_LABELS,
+  AMBITO_RECOMENDACION,
+  AMBITO_RECOMENDACION_LABELS,
+  toOptions,
+} from "@/lib/enums";
+import type {
+  RecomendacionConRelaciones,
+  Hallazgo,
+  AmbitoRecomendacion,
+} from "@/lib/supabase/types";
 
 interface Props {
   recomendacion?: RecomendacionConRelaciones | null;
@@ -23,28 +37,15 @@ interface Props {
   submitting?: boolean;
 }
 
-const alcanceOptions = [
-  { value: "local", label: "Local" },
-  { value: "provincial", label: "Provincial" },
-  { value: "autonomico", label: "Autonómico" },
-  { value: "estatal", label: "Estatal" },
-  { value: "pluriautonomico", label: "Pluriautonómico" },
-];
-
-const estadoOptions = [
-  { value: "formulada", label: "Formulada" },
-  { value: "en_proceso", label: "En proceso" },
-  { value: "adoptada", label: "Adoptada" },
-  { value: "descartada", label: "Descartada" },
-];
-
-/** Convierte CSV "a, b, c" a string[] y viceversa para el input ámbito. */
-function csvToArray(csv: string): string[] {
-  return csv
-    .split(",")
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-}
+const alcanceOptions = toOptions(ALCANCE_TERRITORIAL, ALCANCE_TERRITORIAL_LABELS);
+const estadoOptions = toOptions(
+  ESTADO_RECOMENDACION,
+  ESTADO_RECOMENDACION_LABELS,
+);
+const ambitoOptions = toOptions(
+  AMBITO_RECOMENDACION,
+  AMBITO_RECOMENDACION_LABELS,
+);
 
 export function RecomendacionForm({
   recomendacion,
@@ -78,7 +79,9 @@ export function RecomendacionForm({
       reset({
         titulo: recomendacion.titulo,
         descripcion: recomendacion.descripcion,
-        ambito: recomendacion.ambito ?? [],
+        ambito: (recomendacion.ambito ?? []).filter((v): v is AmbitoRecomendacion =>
+          (AMBITO_RECOMENDACION as readonly string[]).includes(v),
+        ),
         destinatarios: recomendacion.destinatarios ?? "",
         alcance: recomendacion.alcance,
         estado: recomendacion.estado,
@@ -119,17 +122,23 @@ export function RecomendacionForm({
         />
       </Field>
 
-      <Field label="Ámbito" hint="Etiquetas separadas por coma">
+      <Field label="Ámbito de aplicación">
         <Controller
           name="ambito"
           control={control}
-          render={({ field }) => (
-            <Input
-              value={(field.value ?? []).join(", ")}
-              onChange={(e) => field.onChange(csvToArray(e.target.value))}
-              placeholder="ej. educación, vivienda, salud"
-            />
-          )}
+          render={({ field }) => {
+            const allowed = new Set<string>(AMBITO_RECOMENDACION);
+            const filtered = (field.value ?? []).filter((v): v is AmbitoRecomendacion =>
+              allowed.has(v as string),
+            );
+            return (
+              <MultiCheckbox
+                options={ambitoOptions}
+                value={filtered}
+                onChange={field.onChange}
+              />
+            );
+          }}
         />
       </Field>
 

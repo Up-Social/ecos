@@ -26,10 +26,13 @@ export const hallazgosColumns: ColumnDef<HallazgoConRelaciones>[] = [
   {
     accessorKey: "titulo",
     header: "Título",
+    meta: { width: "45%" },
     cell: ({ row }) => (
       <div>
-        <div className="font-medium text-slate-900">{row.original.titulo}</div>
-        <div className="line-clamp-1 text-xs text-slate-500">
+        <div className="whitespace-normal break-words font-medium text-slate-900">
+          {row.original.titulo}
+        </div>
+        <div className="line-clamp-2 text-xs text-slate-500">
           {row.original.descripcion}
         </div>
       </div>
@@ -38,13 +41,20 @@ export const hallazgosColumns: ColumnDef<HallazgoConRelaciones>[] = [
   {
     id: "innovacion",
     header: "Innovación",
-    cell: ({ row }) => row.original.innovacion?.nombre ?? (
-      <span className="text-slate-400">—</span>
-    ),
+    meta: { width: "25%" },
+    cell: ({ row }) =>
+      row.original.innovacion?.nombre ? (
+        <span className="line-clamp-2 text-slate-700">
+          {row.original.innovacion.nombre}
+        </span>
+      ) : (
+        <span className="text-slate-400">—</span>
+      ),
   },
   {
     accessorKey: "nivel_evidencia",
     header: "Nivel de evidencia",
+    meta: { width: "20%" },
     cell: ({ row }) => {
       const e = row.original.nivel_evidencia;
       if (!e) return <span className="text-slate-400">—</span>;
@@ -54,6 +64,7 @@ export const hallazgosColumns: ColumnDef<HallazgoConRelaciones>[] = [
   {
     accessorKey: "validado",
     header: "Validado",
+    meta: { width: "10%" },
     cell: ({ row }) =>
       row.original.validado ? (
         <CheckCircle2 className="h-4 w-4 text-green-600" />

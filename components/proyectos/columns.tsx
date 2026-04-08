@@ -2,21 +2,17 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/Badge";
+import { ESTADO_PROYECTO_LABELS } from "@/lib/enums";
 import type { ProyectoConLider, EstadoProyecto } from "@/lib/supabase/types";
 
 const estadoTone: Record<EstadoProyecto, "slate" | "blue" | "green" | "purple"> = {
-  diseno: "slate",
+  en_diseno: "slate",
   activo: "blue",
   finalizado: "green",
   escalado: "purple",
 };
 
-const estadoLabel: Record<EstadoProyecto, string> = {
-  diseno: "Diseño",
-  activo: "Activo",
-  finalizado: "Finalizado",
-  escalado: "Escalado",
-};
+const estadoLabel = ESTADO_PROYECTO_LABELS;
 
 export const proyectosColumns: ColumnDef<ProyectoConLider>[] = [
   {

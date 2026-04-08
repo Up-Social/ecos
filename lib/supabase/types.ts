@@ -3,41 +3,41 @@
 //   pnpm types:gen   (usa supabase gen types typescript)
 // Mientras tanto este archivo refleja el esquema en supabase/migrations.
 
-export type EstadoProyecto = "diseno" | "activo" | "finalizado" | "escalado";
-export type EstadoInnovacion =
-  | "diseno"
-  | "prototipo"
-  | "implementacion"
-  | "testeado"
-  | "escalado";
-export type NivelImpacto =
-  | "comunitaria"
-  | "local"
-  | "autonomica"
-  | "estatal"
-  | "internacional";
-export type TipoAgente =
-  | "sociedad_civil"
-  | "sector_publico"
-  | "academia"
-  | "sector_privado";
+import type {
+  EstadoProyecto,
+  EstadoExperimentacion,
+  NivelImpacto,
+  TipoAgente,
+  NivelEvidencia,
+  EstadoValidacion,
+  AlcanceTerritorial as AlcanceRecomendacion,
+  EstadoRecomendacion,
+  GrupoPoblacion,
+  RolEcosistema,
+  RangoParticipantes,
+  OpcionEscalado,
+  AmbitoRecomendacion,
+} from "@/lib/enums";
+
+export type {
+  EstadoProyecto,
+  EstadoExperimentacion,
+  NivelImpacto,
+  TipoAgente,
+  NivelEvidencia,
+  EstadoValidacion,
+  AlcanceRecomendacion,
+  EstadoRecomendacion,
+  GrupoPoblacion,
+  RolEcosistema,
+  RangoParticipantes,
+  OpcionEscalado,
+  AmbitoRecomendacion,
+};
+
+// Alias legacy — algunos componentes usan EstadoInnovacion
+export type EstadoInnovacion = EstadoExperimentacion;
 export type TipoTerritorio = "municipio" | "provincia" | "ccaa" | "estado";
-export type NivelEvidencia =
-  | "practica_documentada"
-  | "datos_sistematicos"
-  | "evaluacion_estructurada"
-  | "evidencia_replicada";
-export type AlcanceRecomendacion =
-  | "local"
-  | "provincial"
-  | "autonomico"
-  | "estatal"
-  | "pluriautonomico";
-export type EstadoRecomendacion =
-  | "formulada"
-  | "en_proceso"
-  | "adoptada"
-  | "descartada";
 
 export interface Mision {
   id: string;
@@ -45,6 +45,8 @@ export interface Mision {
   nombre: string;
   descripcion: string | null;
   problema: string | null;
+  fuente_informacion: string | null;
+  notas_internas: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -54,6 +56,7 @@ export interface Reto {
   external_id: string | null;
   nombre: string;
   descripcion: string | null;
+  fuente_informacion: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -66,9 +69,14 @@ export interface Agente {
   email: string | null;
   tipo_agente: TipoAgente | null;
   sede_territorio_id: string | null;
+  municipio_sede: string | null;
+  rol_ecosistema: RolEcosistema[] | null;
+  grupos_poblacion: GrupoPoblacion[] | null;
   personas_implicadas: number | null;
   presupuesto: number | null;
   web: string | null;
+  interconexiones_ids: string | null;
+  fuente_informacion: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -84,6 +92,9 @@ export interface Proyecto {
   fecha_inicio: string | null;
   fecha_fin: string | null;
   financiador: string | null;
+  grupos_poblacion: GrupoPoblacion[] | null;
+  ccaa: string | null;
+  enlace_1: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -94,9 +105,12 @@ export interface Innovacion {
   nombre: string;
   descripcion: string | null;
   proyecto_id: string;
-  estado: EstadoInnovacion | null;
+  estado: EstadoExperimentacion | null;
   nivel_impacto: NivelImpacto | null;
-  n_participantes: string | null;
+  n_participantes: RangoParticipantes | null;
+  grupos_poblacion: GrupoPoblacion[] | null;
+  opciones_escalado: OpcionEscalado[] | null;
+  enlace_referencia: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -112,6 +126,7 @@ export interface Hallazgo {
   enlace: string | null;
   innovacion_id: string;
   validado: boolean;
+  estado_validacion: EstadoValidacion | null;
   created_at: string;
   updated_at: string;
 }
