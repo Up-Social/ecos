@@ -173,9 +173,9 @@ function KPICard({
             {value?.toLocaleString("es-ES") ?? "—"}
           </p>
         )}
-        <div className="mt-0.5 flex items-baseline gap-1.5">
+        <div className="mt-0.5">
           <p className="text-xs font-medium text-slate-700">{config.label}</p>
-          <p className="text-[10px] uppercase tracking-wider text-slate-400">
+          <p className="mt-0.5 text-[10px] uppercase tracking-wider text-slate-400">
             {config.layer}
           </p>
         </div>
