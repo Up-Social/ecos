@@ -150,7 +150,7 @@ export function DataTable<TData>({
                       <td
                         key={cell.id}
                         className={cn(
-                          "px-4 py-2.5 align-top text-slate-700",
+                          "break-words px-4 py-2.5 align-top text-slate-700",
                           meta?.cellClassName,
                         )}
                       >

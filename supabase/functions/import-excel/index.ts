@@ -48,7 +48,7 @@ function json(body: unknown, status = 200): Response {
 type Row = Record<string, unknown>;
 
 interface ImportSummary {
-  [key: string]: { found: number; written: number };
+  [key: string]: { found: number; written: number; skipped: number };
 }
 
 // -----------------------------------------------------------------------------
@@ -186,6 +186,16 @@ function splitList(v: unknown): string[] {
     .filter((s) => s.length > 0);
 }
 
+/** Como splitList pero también separa por " y " (para listas tipo "A013 y A014"). */
+function splitListWithY(v: unknown): string[] {
+  if (v === null || v === undefined || v === "") return [];
+  if (Array.isArray(v)) return v.map((x) => String(x).trim()).filter(Boolean);
+  return String(v)
+    .split(/[|/;\n]+|\s+y\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
 // -----------------------------------------------------------------------------
 // Mapeo de enums (valores del Excel → valores del esquema)
 // -----------------------------------------------------------------------------
@@ -280,6 +290,76 @@ const GRUPOS_POBLACION_VALUES = new Set([
   "personas_sin_hogar", "mujeres", "otros",
 ]);
 
+/** Mapa de etiquetas descriptivas del Excel → keys canónicas para grupos_poblacion.
+ *  Una entrada del mapa puede devolver varias keys (ej. "infancia y juventud" → ambas). */
+const GRUPOS_POBLACION_LABEL_MAP: Record<string, string[]> = {
+  "infancia": ["infancia"],
+  "adolescencia": ["adolescencia"],
+  "infancia y adolescencia": ["infancia", "adolescencia"],
+  "infancia y juventud": ["infancia", "jovenes"],
+  "infancia, adolescencia y juventud": ["infancia", "adolescencia", "jovenes"],
+  "jovenes": ["jovenes"],
+  "jóvenes": ["jovenes"],
+  "personas mayores": ["personas_mayores"],
+  "mayores": ["personas_mayores"],
+  "migrantes": ["migrantes"],
+  "personas con discapacidad": ["personas_discapacidad"],
+  "personas con discapacidad fisica y organica": ["personas_discapacidad"],
+  "personas con discapacidad física y orgánica": ["personas_discapacidad"],
+  "personas con discapacidad intelectual y del desarrollo": ["personas_discapacidad"],
+  "personas con discapacidad intelectual": ["personas_discapacidad"],
+  "familias": ["familias"],
+  "personas sin hogar": ["personas_sin_hogar"],
+  "sinhogarismo": ["personas_sin_hogar"],
+  "personas en situacion de sinhogarismo": ["personas_sin_hogar"],
+  "personas en situación de sinhogarismo": ["personas_sin_hogar"],
+  "mujeres": ["mujeres"],
+  "transversal": ["otros"],
+  "transcersal": ["otros"], // typo presente en el Excel
+};
+
+/** Mapa de etiquetas descriptivas del Excel → keys canónicas para rol_ecosistema. */
+const ROL_ECOSISTEMA_LABEL_MAP: Record<string, string> = {
+  "financia": "financia",
+  "diseña": "diseña",
+  "disena": "diseña",
+  "implementa": "implementa",
+  "investiga": "investiga",
+  "coordina": "coordina",
+  "evalua": "evalúa",
+  "evalúa": "evalúa",
+  "acompaña": "acompaña",
+  "acompana": "acompaña",
+  "regula": "regula",
+};
+
+/** Resuelve grupos_poblacion del Excel devolviendo el array de keys canónicas. */
+function resolveGruposPoblacion(value: unknown): string[] {
+  const out = new Set<string>();
+  for (const token of splitList(value)) {
+    const key = normKey(token);
+    const mapped = GRUPOS_POBLACION_LABEL_MAP[key];
+    if (mapped) {
+      mapped.forEach((k) => out.add(k));
+    } else if (GRUPOS_POBLACION_VALUES.has(key)) {
+      out.add(key);
+    }
+  }
+  return Array.from(out);
+}
+
+/** Resuelve rol_ecosistema del Excel devolviendo el array de keys canónicas. */
+function resolveRolesEcosistema(value: unknown): string[] {
+  const out = new Set<string>();
+  for (const token of splitList(value)) {
+    const key = normKey(token);
+    const mapped = ROL_ECOSISTEMA_LABEL_MAP[key];
+    if (mapped) out.add(mapped);
+    else if (ROL_ECOSISTEMA_VALUES.has(key)) out.add(key);
+  }
+  return Array.from(out);
+}
+
 const RANGO_PARTICIPANTES_VALUES = new Set([
   "1-10", "11-50", "51-200", "201-1000", "mas_de_1000",
 ]);
@@ -333,6 +413,208 @@ function mapEnum(
   const s = toStr(value);
   if (!s) return null;
   return map[normKey(s)] ?? null;
+}
+
+// -----------------------------------------------------------------------------
+// Comparación de filas para detectar modificaciones vs estado en BD.
+// -----------------------------------------------------------------------------
+
+/** Normaliza un valor para comparación: null, undefined y "" → null. */
+function normalizeForCompare(v: unknown): unknown {
+  if (v === null || v === undefined || v === "") return null;
+  if (Array.isArray(v)) {
+    const arr = v.map((x) => (typeof x === "string" ? x.trim() : x))
+      .filter((x) => x !== null && x !== "");
+    return arr.length === 0 ? null : [...arr].sort();
+  }
+  if (typeof v === "string") return v.trim();
+  return v;
+}
+
+/** Compara dos valores de fila considerando arrays, números y strings. */
+function valuesEqual(a: unknown, b: unknown): boolean {
+  const na = normalizeForCompare(a);
+  const nb = normalizeForCompare(b);
+  if (na === null && nb === null) return true;
+  if (na === null || nb === null) return false;
+  if (Array.isArray(na) && Array.isArray(nb)) {
+    if (na.length !== nb.length) return false;
+    return na.every((v, i) => v === (nb as unknown[])[i]);
+  }
+  // Boolean comparison
+  if (typeof na === "boolean" || typeof nb === "boolean") {
+    return Boolean(na) === Boolean(nb);
+  }
+  // Number comparison
+  if (typeof na === "number" || typeof nb === "number") {
+    const numA = Number(na);
+    const numB = Number(nb);
+    if (Number.isFinite(numA) && Number.isFinite(numB)) {
+      return numA === numB;
+    }
+  }
+  return String(na) === String(nb);
+}
+
+/** Compara una fila candidata con la existente en BD para los campos dados. */
+function rowsEqual(
+  existing: Record<string, unknown>,
+  candidate: Record<string, unknown>,
+  fields: string[],
+): boolean {
+  for (const f of fields) {
+    if (!valuesEqual(existing[f], candidate[f])) return false;
+  }
+  return true;
+}
+
+/** Diferencias entre dos filas: devuelve los nombres de campo modificados. */
+function diffFields(
+  existing: Record<string, unknown>,
+  candidate: Record<string, unknown>,
+  fields: string[],
+): string[] {
+  return fields.filter((f) => !valuesEqual(existing[f], candidate[f]));
+}
+
+// Campos de identidad usados para detectar si una fila ha sido modificada.
+// No incluyen FKs (las resolvemos por nombre/external_id) ni relaciones M:N
+// (se reconstruyen siempre).
+const COMPARE_FIELDS: Record<string, string[]> = {
+  misiones: ["nombre", "descripcion", "problema", "fuente_informacion", "notas_internas"],
+  retos: ["nombre", "descripcion", "fuente_informacion"],
+  agentes: [
+    "nombre", "descripcion", "email", "tipo_agente", "municipio_sede",
+    "rol_ecosistema", "grupos_poblacion", "web", "personas_implicadas",
+    "presupuesto", "interconexiones_ids", "fuente_informacion",
+  ],
+  proyectos: [
+    "nombre", "descripcion", "estado", "financiador",
+    "grupos_poblacion", "ccaa", "enlace_1",
+  ],
+  innovaciones: [
+    "nombre", "descripcion", "estado", "nivel_impacto",
+    "n_participantes", "grupos_poblacion", "opciones_escalado", "enlace_referencia",
+  ],
+  hallazgos: [
+    "titulo", "descripcion", "nivel_evidencia", "evidencia_cuantitativa",
+    "fuente", "enlace", "estado_validacion",
+  ],
+  recomendaciones: [
+    "titulo", "descripcion", "ambito", "destinatarios", "alcance", "estado",
+  ],
+};
+
+// -----------------------------------------------------------------------------
+// Tipos de validación
+// -----------------------------------------------------------------------------
+
+type RowOutcome = "new" | "skip" | "conflict";
+
+interface ValidationError {
+  sheet: string;
+  row?: number;
+  external_id?: string;
+  type: "duplicate_id" | "duplicate_name" | "modified" | "missing_id" | "fk_missing";
+  message: string;
+  diff?: string[];
+}
+
+interface SheetValidation<T extends Record<string, unknown>> {
+  table: string;
+  candidates: T[]; // filas construidas para insertar o comparar
+  outcomes: RowOutcome[]; // por índice de candidates
+  existing: Map<string, Record<string, unknown>>; // external_id → row de BD
+  errors: ValidationError[];
+}
+
+/** Detecta duplicados intra-sheet por external_id o por un campo identificador (nombre/titulo). */
+function detectIntraSheetDuplicates<T extends Record<string, unknown>>(
+  sheet: string,
+  candidates: T[],
+  nameField: string,
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+  const seenIds = new Map<string, number>();
+  const seenNames = new Map<string, number>();
+  for (let i = 0; i < candidates.length; i++) {
+    const c = candidates[i];
+    const ext = c.external_id ? String(c.external_id) : null;
+    const name = c[nameField] ? String(c[nameField]).trim() : null;
+
+    if (ext) {
+      if (seenIds.has(ext)) {
+        errors.push({
+          sheet,
+          row: i + 2, // +2 por cabecera (row 1 + 0-index)
+          external_id: ext,
+          type: "duplicate_id",
+          message: `ID "${ext}" duplicado en la hoja (también en fila ${seenIds.get(ext)! + 2}).`,
+        });
+      } else {
+        seenIds.set(ext, i);
+      }
+    }
+
+    if (name) {
+      const nameKey = normKey(name);
+      if (seenNames.has(nameKey)) {
+        errors.push({
+          sheet,
+          row: i + 2,
+          external_id: ext ?? undefined,
+          type: "duplicate_name",
+          message: `${nameField === "titulo" ? "Título" : "Nombre"} "${name}" duplicado en la hoja (también en fila ${seenNames.get(nameKey)! + 2}).`,
+        });
+      } else {
+        seenNames.set(nameKey, i);
+      }
+    }
+  }
+  return errors;
+}
+
+/** Clasifica cada candidata como new/skip/conflict comparando con la BD existente. */
+function classifyAgainstDb<T extends Record<string, unknown>>(
+  sheet: string,
+  table: string,
+  candidates: T[],
+  existing: Map<string, Record<string, unknown>>,
+): { outcomes: RowOutcome[]; errors: ValidationError[] } {
+  const fields = COMPARE_FIELDS[table] ?? [];
+  const outcomes: RowOutcome[] = [];
+  const errors: ValidationError[] = [];
+
+  for (let i = 0; i < candidates.length; i++) {
+    const c = candidates[i];
+    const ext = c.external_id ? String(c.external_id) : null;
+    if (!ext) {
+      outcomes.push("new");
+      continue;
+    }
+    const dbRow = existing.get(ext);
+    if (!dbRow) {
+      outcomes.push("new");
+      continue;
+    }
+    if (rowsEqual(dbRow, c, fields)) {
+      outcomes.push("skip");
+    } else {
+      const diff = diffFields(dbRow, c, fields);
+      outcomes.push("conflict");
+      const nameField = table === "hallazgos" || table === "recomendaciones" ? "titulo" : "nombre";
+      const label = c[nameField] ? String(c[nameField]) : ext;
+      errors.push({
+        sheet,
+        row: i + 2,
+        external_id: ext,
+        type: "modified",
+        message: `Fila "${label}" (${ext}) ya existe con contenido distinto. Campos modificados: ${diff.join(", ")}.`,
+        diff,
+      });
+    }
+  }
+  return { outcomes, errors };
 }
 
 // -----------------------------------------------------------------------------
@@ -470,14 +752,16 @@ Deno.serve(async (req) => {
     };
 
     const summary: ImportSummary = {
-      misiones: { found: data.misiones.length, written: 0 },
-      retos: { found: data.retos.length, written: 0 },
-      agentes: { found: data.agentes.length, written: 0 },
-      proyectos: { found: data.proyectos.length, written: 0 },
-      innovaciones: { found: data.innovaciones.length, written: 0 },
-      hallazgos: { found: data.hallazgos.length, written: 0 },
-      recomendaciones: { found: data.recomendaciones.length, written: 0 },
+      misiones: { found: data.misiones.length, written: 0, skipped: 0 },
+      retos: { found: data.retos.length, written: 0, skipped: 0 },
+      agentes: { found: data.agentes.length, written: 0, skipped: 0 },
+      proyectos: { found: data.proyectos.length, written: 0, skipped: 0 },
+      innovaciones: { found: data.innovaciones.length, written: 0, skipped: 0 },
+      hallazgos: { found: data.hallazgos.length, written: 0, skipped: 0 },
+      recomendaciones: { found: data.recomendaciones.length, written: 0, skipped: 0 },
     };
+
+    const validationErrors: ValidationError[] = [];
 
     // -------------------------------------------------------------------------
     // 3. Modo dry_run: solo devolver conteos
@@ -522,79 +806,263 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ---- 4.1 MISIONES ----
-    if (data.misiones.length > 0) {
-      const rows = data.misiones.map((r) => ({
-        external_id: toStr(r.ID_Mision),
-        nombre: toStr(r.Nombre_mision) ?? "(sin nombre)",
-        descripcion: toStr(r.Descripcion),
-        problema: toStr(r.Problema_Justificacion),
-        fuente_informacion: toStr(r.Fuente_informacion),
-        notas_internas: toStr(r.Notas_internas),
-      }));
-      const { rows: inserted, written } = await upsertByExternalId<{
-        id: string;
-        external_id: string;
-      }>(supabase, "misiones", rows);
-      summary.misiones.written = written;
-      for (const m of inserted) {
-        if (m.external_id) misionIds.set(m.external_id, m.id);
+    // =========================================================================
+    // FASE 1 — Construir candidatas + validación (sin escribir nada en BD)
+    // =========================================================================
+
+    // ---- Misiones: candidatas
+    const misionesCandidates = data.misiones.map((r) => ({
+      external_id: toStr(r.ID_Mision),
+      nombre: toStr(r.Nombre_mision) ?? "(sin nombre)",
+      descripcion: toStr(r.Descripcion),
+      problema: toStr(r.Problema_Justificacion),
+      fuente_informacion: toStr(r.Fuente_informacion),
+      notas_internas: toStr(r.Notas_internas),
+    }));
+
+    // ---- Agentes: candidatas
+    const agentesCandidates = data.agentes.map((r) => ({
+      external_id: toStr(r.ID_Agente),
+      nombre: toStr(r.Nombre_agente) ?? "(sin nombre)",
+      descripcion: toStr(r.Descripcion_breve),
+      email: toStr(r.Email_contacto),
+      tipo_agente: mapEnum(r.Tipo_agente, TIPO_AGENTE_MAP),
+      personas_implicadas: toInt(r.Personas_implicadas),
+      presupuesto: toNum(r.Volumen_inversion_euros),
+      web: toStr(r.Web),
+      municipio_sede: toStr(r.Municipio_sede),
+      rol_ecosistema: resolveRolesEcosistema(r.Rol_ecosistema),
+      grupos_poblacion: resolveGruposPoblacion(r.Grupos_poblacion),
+      interconexiones_ids: toStr(r.Interconexiones_IDs),
+      fuente_informacion: toStr(r.Fuente_informacion),
+    }));
+
+    // ---- Retos: candidatas
+    const retosCandidates = data.retos.map((r) => ({
+      external_id: toStr(r.ID_Reto),
+      nombre: toStr(r.Nombre_reto) ?? "(sin nombre)",
+      descripcion: toStr(r.Descripcion),
+      fuente_informacion: toStr(r.Fuente_informacion),
+    }));
+
+    // ---- Proyectos: candidatas (sin agente_lider_id resuelto aún)
+    const proyectosCandidates = data.proyectos.map((p) => ({
+      external_id: toStr(p.ID_Proyecto),
+      nombre: toStr(p.Nombre_proyecto) ?? "(sin nombre)",
+      descripcion: toStr(p.Descripcion),
+      estado: mapEnum(p.Estado, ESTADO_PROYECTO_MAP),
+      fecha_inicio: toDate(p.Fecha_inicio, "start"),
+      fecha_fin: toDate(p.Fecha_fin, "end"),
+      presupuesto: toNum(p.Presupuesto_euros),
+      financiador: toStr(p.Financiador),
+      grupos_poblacion: resolveGruposPoblacion(p.Grupos_poblacion),
+      ccaa: toStr(p.CCAA),
+      enlace_1: toStr(p.Enlace_1),
+    }));
+
+    // ---- Innovaciones: candidatas (sin proyecto_id resuelto aún)
+    const innovacionesCandidates = data.innovaciones.map((i) => {
+      const rangoRaw = toStr(i.Rango_participantes);
+      const rango = rangoRaw && RANGO_PARTICIPANTES_VALUES.has(rangoRaw)
+        ? rangoRaw
+        : null;
+      return {
+        external_id: toStr(i.ID_Innovacion),
+        nombre: toStr(i.Nombre_innovacion) ?? "(sin nombre)",
+        descripcion: toStr(i.Descripcion),
+        estado: mapEnum(i.Estado_experimentacion, ESTADO_INNOVACION_MAP),
+        nivel_impacto: mapEnum(i.Nivel_impacto, NIVEL_IMPACTO_MAP),
+        n_participantes: rango,
+        grupos_poblacion: resolveGruposPoblacion(i.Grupos_poblacion),
+        opciones_escalado: mapEnumList(splitList(i.Opciones_escalado), OPCIONES_ESCALADO_MAP),
+        enlace_referencia: toStr(i.Enlace_referencia),
+      };
+    });
+
+    // ---- Hallazgos: candidatas (sin innovacion_id resuelto aún)
+    const hallazgosCandidates = data.hallazgos.map((h) => {
+      const estadoVal = mapEnum(h.Estado_validacion, ESTADO_VALIDACION_MAP);
+      return {
+        external_id: toStr(h.ID_Hallazgo),
+        titulo: toStr(h.Titulo_hallazgo) ?? "(sin título)",
+        descripcion: toStr(h.Descripcion) ?? "(sin descripción)",
+        nivel_evidencia: mapEnum(h.Nivel_evidencia, NIVEL_EVIDENCIA_MAP),
+        evidencia_cuantitativa: toStr(h.Evidencia_cuantitativa),
+        fuente: toStr(h.Fuente),
+        enlace: toStr(h.Enlace_fuente),
+        estado_validacion: estadoVal,
+        validado: estadoVal === "validado",
+      };
+    });
+
+    // ---- Recomendaciones: candidatas
+    const recomendacionesCandidates = data.recomendaciones.map((r) => ({
+      external_id: toStr(r.ID_Recomendacion),
+      titulo: toStr(r.Titulo_recomendacion) ?? "(sin título)",
+      descripcion: toStr(r.Descripcion) ?? "(sin descripción)",
+      ambito: filterEnum(splitList(r.Ambito_aplicacion), AMBITO_RECOMENDACION_VALUES),
+      destinatarios: toStr(r.Destinatarios),
+      alcance: mapEnum(r.Alcance_territorial, ALCANCE_RECOMENDACION_MAP),
+      estado: mapEnum(r.Estado, ESTADO_RECOMENDACION_MAP),
+    }));
+
+    // ---- Validación intra-archivo: duplicados de ID y nombre/título
+    validationErrors.push(...detectIntraSheetDuplicates("Misiones", misionesCandidates, "nombre"));
+    validationErrors.push(...detectIntraSheetDuplicates("Agentes", agentesCandidates, "nombre"));
+    validationErrors.push(...detectIntraSheetDuplicates("Retos", retosCandidates, "nombre"));
+    validationErrors.push(...detectIntraSheetDuplicates("Proyectos", proyectosCandidates, "nombre"));
+    validationErrors.push(...detectIntraSheetDuplicates("Innovaciones", innovacionesCandidates, "nombre"));
+    validationErrors.push(...detectIntraSheetDuplicates("Hallazgos", hallazgosCandidates, "titulo"));
+    validationErrors.push(...detectIntraSheetDuplicates("Recomendaciones", recomendacionesCandidates, "titulo"));
+
+    // Helper para cargar filas existentes por external_id
+    async function loadExisting(
+      table: string,
+      candidates: Record<string, unknown>[],
+    ): Promise<Map<string, Record<string, unknown>>> {
+      const ids = candidates.map((c) => c.external_id).filter(Boolean) as string[];
+      const out = new Map<string, Record<string, unknown>>();
+      if (ids.length === 0) return out;
+      const cols = ["id", "external_id", ...COMPARE_FIELDS[table]];
+      const { data: ex, error } = await supabase
+        .from(table)
+        .select(cols.join(", "))
+        .in("external_id", ids);
+      if (error) throw new Error(`Cargar existentes ${table}: ${error.message}`);
+      for (const row of ex ?? []) {
+        if ((row as any).external_id) {
+          out.set((row as any).external_id, row as any);
+        }
+      }
+      return out;
+    }
+
+    const misionesExisting = await loadExisting("misiones", misionesCandidates);
+    const agentesExisting = await loadExisting("agentes", agentesCandidates);
+    const retosExisting = await loadExisting("retos", retosCandidates);
+    const proyectosExisting = await loadExisting("proyectos", proyectosCandidates);
+    const innovacionesExisting = await loadExisting("innovaciones", innovacionesCandidates);
+    const hallazgosExisting = await loadExisting("hallazgos", hallazgosCandidates);
+    const recomendacionesExisting = await loadExisting("recomendaciones", recomendacionesCandidates);
+
+    const misionesCls = classifyAgainstDb("Misiones", "misiones", misionesCandidates, misionesExisting);
+    const agentesCls = classifyAgainstDb("Agentes", "agentes", agentesCandidates, agentesExisting);
+    const retosCls = classifyAgainstDb("Retos", "retos", retosCandidates, retosExisting);
+    const proyectosCls = classifyAgainstDb("Proyectos", "proyectos", proyectosCandidates, proyectosExisting);
+    const innovacionesCls = classifyAgainstDb("Innovaciones", "innovaciones", innovacionesCandidates, innovacionesExisting);
+    const hallazgosCls = classifyAgainstDb("Hallazgos", "hallazgos", hallazgosCandidates, hallazgosExisting);
+    const recomendacionesCls = classifyAgainstDb("Recomendaciones", "recomendaciones", recomendacionesCandidates, recomendacionesExisting);
+
+    validationErrors.push(...misionesCls.errors);
+    validationErrors.push(...agentesCls.errors);
+    validationErrors.push(...retosCls.errors);
+    validationErrors.push(...proyectosCls.errors);
+    validationErrors.push(...innovacionesCls.errors);
+    validationErrors.push(...hallazgosCls.errors);
+    validationErrors.push(...recomendacionesCls.errors);
+
+    // Si hay errores de validación, abortamos sin escribir nada.
+    if (validationErrors.length > 0) {
+      await finishLog("error", `${validationErrors.length} errores de validación`);
+      return json({
+        ok: false,
+        validation_errors: validationErrors,
+        summary: Object.fromEntries(
+          Object.entries(summary).map(([k, v]) => [k, v.found]),
+        ),
+        log_id: logId,
+      }, 422);
+    }
+
+    // =========================================================================
+    // FASE 2 — Escritura: insertar NEW, omitir SKIP. Reconstruir relaciones M:N
+    // para todas las filas presentes en el archivo.
+    // =========================================================================
+
+    /** Inserta solo las filas marcadas como "new" y devuelve el mapeo external_id→uuid
+     *  para todas las filas (NEW + SKIP). */
+    async function writeEntity(
+      table: string,
+      candidates: Record<string, unknown>[],
+      outcomes: RowOutcome[],
+      existing: Map<string, Record<string, unknown>>,
+      summaryKey: keyof ImportSummary,
+    ): Promise<Map<string, string>> {
+      const idMap = new Map<string, string>();
+      // Skipped → ya existen, sacar UUID del row de BD
+      for (let i = 0; i < candidates.length; i++) {
+        if (outcomes[i] === "skip") {
+          const ext = candidates[i].external_id as string;
+          const dbRow = existing.get(ext)!;
+          idMap.set(ext, (dbRow as any).id);
+          summary[summaryKey].skipped++;
+        }
+      }
+      // New → insertar
+      const newRows = candidates.filter((_, i) => outcomes[i] === "new");
+      if (newRows.length > 0) {
+        const { data: inserted, error } = await supabase
+          .from(table)
+          .insert(newRows)
+          .select("id, external_id");
+        if (error) throw new Error(`Insert ${table}: ${error.message}`);
+        for (const row of inserted ?? []) {
+          if ((row as any).external_id) {
+            idMap.set((row as any).external_id, (row as any).id);
+          }
+        }
+        summary[summaryKey].written = inserted?.length ?? 0;
+      }
+      return idMap;
+    }
+
+    // ---- Misiones
+    {
+      const ids = await writeEntity(
+        "misiones",
+        misionesCandidates,
+        misionesCls.outcomes,
+        misionesExisting,
+        "misiones",
+      );
+      ids.forEach((v, k) => misionIds.set(k, v));
+    }
+
+    // ---- Agentes
+    {
+      const ids = await writeEntity(
+        "agentes",
+        agentesCandidates,
+        agentesCls.outcomes,
+        agentesExisting,
+        "agentes",
+      );
+      ids.forEach((v, k) => agenteIds.set(k, v));
+      // Refrescar agenteNombres con todos (NEW + SKIP)
+      for (const c of agentesCandidates) {
+        const ext = c.external_id as string;
+        const uuid = ids.get(ext);
+        if (uuid && c.nombre) agenteNombres.set(normKey(c.nombre as string), uuid);
       }
     }
 
-    // ---- 4.2 AGENTES ----
-    if (data.agentes.length > 0) {
-      const rows = data.agentes.map((r) => ({
-        external_id: toStr(r.ID_Agente),
-        nombre: toStr(r.Nombre_agente) ?? "(sin nombre)",
-        descripcion: toStr(r.Descripcion_breve),
-        email: toStr(r.Email_contacto),
-        tipo_agente: mapEnum(r.Tipo_agente, TIPO_AGENTE_MAP),
-        personas_implicadas: toInt(r.Personas_implicadas),
-        presupuesto: toNum(r.Volumen_inversion_euros),
-        web: toStr(r.Web),
-        municipio_sede: toStr(r.Municipio_sede),
-        rol_ecosistema: filterEnum(splitList(r.Rol_ecosistema), ROL_ECOSISTEMA_VALUES),
-        grupos_poblacion: filterEnum(splitList(r.Grupos_poblacion), GRUPOS_POBLACION_VALUES),
-        interconexiones_ids: toStr(r.Interconexiones_IDs),
-        fuente_informacion: toStr(r.Fuente_informacion),
-      }));
-      const { rows: inserted, written } = await upsertByExternalId<{
-        id: string;
-        external_id: string;
-        nombre: string;
-      }>(supabase, "agentes", rows);
-      summary.agentes.written = written;
-      for (const a of inserted) {
-        if (a.external_id) agenteIds.set(a.external_id, a.id);
-        if (a.nombre) agenteNombres.set(normKey(a.nombre), a.id);
-      }
-    }
+    // ---- Retos
+    {
+      const ids = await writeEntity(
+        "retos",
+        retosCandidates,
+        retosCls.outcomes,
+        retosExisting,
+        "retos",
+      );
+      ids.forEach((v, k) => retoIds.set(k, v));
 
-    // ---- 4.3 RETOS (depende de Misiones para retos_misiones) ----
-    if (data.retos.length > 0) {
-      const rows = data.retos.map((r) => ({
-        external_id: toStr(r.ID_Reto),
-        nombre: toStr(r.Nombre_reto) ?? "(sin nombre)",
-        descripcion: toStr(r.Descripcion),
-        fuente_informacion: toStr(r.Fuente_informacion),
-      }));
-      const { rows: inserted, written } = await upsertByExternalId<{
-        id: string;
-        external_id: string;
-      }>(supabase, "retos", rows);
-      summary.retos.written = written;
-      for (const r of inserted) {
-        if (r.external_id) retoIds.set(r.external_id, r.id);
-      }
-
-      // Sync N:M retos_misiones
+      // Reconstruir retos_misiones para todos los retos del archivo
       for (const r of data.retos) {
         const retoExt = toStr(r.ID_Reto);
         const retoUuid = retoExt ? retoIds.get(retoExt) : null;
         if (!retoUuid) continue;
 
-        // Recoger TODAS las columnas que empiecen por "ID_Mision"
         const misionExternals: string[] = [];
         for (const [k, v] of Object.entries(r)) {
           if (k.startsWith("ID_Mision") && v) {
@@ -606,143 +1074,95 @@ Deno.serve(async (req) => {
           .filter((id): id is string => !!id)
           .map((mision_id) => ({ reto_id: retoUuid, mision_id }));
 
-        await syncRelations(
-          supabase,
-          "retos_misiones",
-          "reto_id",
-          retoUuid,
-          links,
-        );
+        await syncRelations(supabase, "retos_misiones", "reto_id", retoUuid, links);
       }
     }
 
-    // ---- 4.4 PROYECTOS (depende de Agentes) ----
-    // Helper local: resolver agente líder por ID o nombre, creando stub si no existe.
-    async function resolveAgente(value: unknown): Promise<string | null> {
+    // ---- Proyectos
+    // Helper: resolver agente por external_id o por nombre. No crea stubs.
+    function resolveAgente(value: unknown): string | null {
       const v = toStr(value);
       if (!v) return null;
-
-      // 1. ¿Es un external_id (A001, A042, etc.)?
       if (/^A\d+$/i.test(v) && agenteIds.has(v.toUpperCase())) {
         return agenteIds.get(v.toUpperCase()) ?? null;
       }
-
-      // 2. ¿Existe por nombre?
       const byName = agenteNombres.get(normKey(v));
       if (byName) return byName;
-
-      // 3. Crear stub
-      const { data: stub, error } = await supabase
-        .from("agentes")
-        .insert({ nombre: v })
-        .select("id, nombre, external_id")
-        .single();
-      if (error || !stub) return null;
-      agenteNombres.set(normKey(stub.nombre), stub.id);
-      if (stub.external_id) agenteIds.set(stub.external_id, stub.id);
-      return stub.id;
+      return null;
     }
 
-    if (data.proyectos.length > 0) {
-      const projectRows: Record<string, unknown>[] = [];
-      // Pre-resolución secuencial de líderes (puede crear agentes stub)
-      const liderIds: (string | null)[] = [];
-      for (const p of data.proyectos) {
-        liderIds.push(await resolveAgente(p.ID_Agente_lider));
+    {
+      // Inyectar agente_lider_id resuelto en cada candidata antes de insertar.
+      // Para SKIP rows, el lider ya existe en la BD; lo dejamos en null y solo
+      // lo seteamos en NEW rows (las que vamos a insertar).
+      for (let i = 0; i < proyectosCandidates.length; i++) {
+        if (proyectosCls.outcomes[i] === "new") {
+          const liderId = resolveAgente(data.proyectos[i].ID_Agente_lider);
+          if (!liderId) {
+            // Fallback: si no se resuelve, marcamos como "no insertar"
+            proyectosCls.outcomes[i] = "skip";
+            continue;
+          }
+          (proyectosCandidates[i] as Record<string, unknown>).agente_lider_id = liderId;
+        }
       }
 
-      for (let i = 0; i < data.proyectos.length; i++) {
-        const p = data.proyectos[i];
-        const liderId = liderIds[i];
-        if (!liderId) continue; // sin líder no podemos crear el proyecto (NOT NULL)
-        projectRows.push({
-          external_id: toStr(p.ID_Proyecto),
-          nombre: toStr(p.Nombre_proyecto) ?? "(sin nombre)",
-          descripcion: toStr(p.Descripcion),
-          agente_lider_id: liderId,
-          estado: mapEnum(p.Estado, ESTADO_PROYECTO_MAP),
-          fecha_inicio: toDate(p.Fecha_inicio, "start"),
-          fecha_fin: toDate(p.Fecha_fin, "end"),
-          presupuesto: toNum(p.Presupuesto_euros),
-          financiador: toStr(p.Financiador),
-          grupos_poblacion: filterEnum(splitList(p.Grupos_poblacion), GRUPOS_POBLACION_VALUES),
-          ccaa: toStr(p.CCAA),
-          enlace_1: toStr(p.Enlace_1),
-        });
-      }
+      const ids = await writeEntity(
+        "proyectos",
+        proyectosCandidates,
+        proyectosCls.outcomes,
+        proyectosExisting,
+        "proyectos",
+      );
+      ids.forEach((v, k) => proyectoIds.set(k, v));
 
-      const { rows: inserted, written } = await upsertByExternalId<{
-        id: string;
-        external_id: string;
-      }>(supabase, "proyectos", projectRows);
-      summary.proyectos.written = written;
-      for (const p of inserted) {
-        if (p.external_id) proyectoIds.set(p.external_id, p.id);
-      }
-
-      // Sync N:M proyectos_agentes (socios)
+      // Reconstruir proyectos_agentes para todos los proyectos del archivo
       for (let i = 0; i < data.proyectos.length; i++) {
         const p = data.proyectos[i];
         const projExt = toStr(p.ID_Proyecto);
         const projUuid = projExt ? proyectoIds.get(projExt) : null;
         if (!projUuid) continue;
 
-        const liderId = liderIds[i];
-        const sociosTokens = splitList(p.IDs_Agentes_socios);
+        const liderId = resolveAgente(p.ID_Agente_lider);
+        const sociosTokens = splitListWithY(p.IDs_Agentes_socios);
         const sociosUuids: string[] = [];
         for (const token of sociosTokens) {
-          const id = await resolveAgente(token);
+          const id = resolveAgente(token);
           if (id && id !== liderId) sociosUuids.push(id);
         }
         const links = Array.from(new Set(sociosUuids)).map((agente_id) => ({
           proyecto_id: projUuid,
           agente_id,
         }));
-        await syncRelations(
-          supabase,
-          "proyectos_agentes",
-          "proyecto_id",
-          projUuid,
-          links,
-        );
+        await syncRelations(supabase, "proyectos_agentes", "proyecto_id", projUuid, links);
       }
     }
 
-    // ---- 4.5 INNOVACIONES (depende de Proyectos) ----
-    if (data.innovaciones.length > 0) {
-      const rows: Record<string, unknown>[] = [];
-      for (const i of data.innovaciones) {
-        const projExt = toStr(i.ID_Proyecto);
-        const projUuid = projExt ? proyectoIds.get(projExt) : null;
-        if (!projUuid) continue;
-        const rangoRaw = toStr(i.Rango_participantes);
-        const rango = rangoRaw && RANGO_PARTICIPANTES_VALUES.has(rangoRaw)
-          ? rangoRaw
-          : null;
-        rows.push({
-          external_id: toStr(i.ID_Innovacion),
-          nombre: toStr(i.Nombre_innovacion) ?? "(sin nombre)",
-          descripcion: toStr(i.Descripcion),
-          proyecto_id: projUuid,
-          estado: mapEnum(i.Estado_experimentacion, ESTADO_INNOVACION_MAP),
-          nivel_impacto: mapEnum(i.Nivel_impacto, NIVEL_IMPACTO_MAP),
-          n_participantes: rango,
-          grupos_poblacion: filterEnum(splitList(i.Grupos_poblacion), GRUPOS_POBLACION_VALUES),
-          opciones_escalado: mapEnumList(splitList(i.Opciones_escalado), OPCIONES_ESCALADO_MAP),
-          enlace_referencia: toStr(i.Enlace_referencia),
-        });
+    // ---- Innovaciones
+    {
+      // Inyectar proyecto_id en candidatas NEW
+      for (let i = 0; i < innovacionesCandidates.length; i++) {
+        if (innovacionesCls.outcomes[i] === "new") {
+          const projExt = toStr(data.innovaciones[i].ID_Proyecto);
+          const projUuid = projExt ? proyectoIds.get(projExt) : null;
+          if (!projUuid) {
+            innovacionesCls.outcomes[i] = "skip";
+            continue;
+          }
+          (innovacionesCandidates[i] as Record<string, unknown>).proyecto_id = projUuid;
+        }
       }
 
-      const { rows: inserted, written } = await upsertByExternalId<{
-        id: string;
-        external_id: string;
-      }>(supabase, "innovaciones", rows);
-      summary.innovaciones.written = written;
-      for (const x of inserted) {
-        if (x.external_id) innovacionIds.set(x.external_id, x.id);
-      }
+      const ids = await writeEntity(
+        "innovaciones",
+        innovacionesCandidates,
+        innovacionesCls.outcomes,
+        innovacionesExisting,
+        "innovaciones",
+      );
+      ids.forEach((v, k) => innovacionIds.set(k, v));
 
-      // Sync N:M innovaciones_retos (cualquier columna ID_Reto*)
+      // Reconstruir innovaciones_retos para todas las innovaciones del archivo
       for (const i of data.innovaciones) {
         const innExt = toStr(i.ID_Innovacion);
         const innUuid = innExt ? innovacionIds.get(innExt) : null;
@@ -762,79 +1182,48 @@ Deno.serve(async (req) => {
           ),
         ).map((reto_id) => ({ innovacion_id: innUuid, reto_id }));
 
-        await syncRelations(
-          supabase,
-          "innovaciones_retos",
-          "innovacion_id",
-          innUuid,
-          links,
-        );
+        await syncRelations(supabase, "innovaciones_retos", "innovacion_id", innUuid, links);
       }
     }
 
-    // ---- 4.6 HALLAZGOS (depende de Innovaciones) ----
-    if (data.hallazgos.length > 0) {
-      const rows: Record<string, unknown>[] = [];
-      for (const h of data.hallazgos) {
-        const innExt = toStr(h.ID_Innovacion);
-        const innUuid = innExt ? innovacionIds.get(innExt) : null;
-        if (!innUuid) continue;
-
-        // Hallazgos requiere titulo + descripcion no nulos en BD.
-        const titulo = toStr(h.Titulo_hallazgo) ?? "(sin título)";
-        const descripcion = toStr(h.Descripcion) ?? "(sin descripción)";
-
-        const estadoVal = mapEnum(h.Estado_validacion, ESTADO_VALIDACION_MAP);
-        rows.push({
-          external_id: toStr(h.ID_Hallazgo),
-          titulo,
-          descripcion,
-          nivel_evidencia: mapEnum(h.Nivel_evidencia, NIVEL_EVIDENCIA_MAP),
-          evidencia_cuantitativa: toStr(h.Evidencia_cuantitativa),
-          fuente: toStr(h.Fuente),
-          enlace: toStr(h.Enlace_fuente),
-          innovacion_id: innUuid,
-          estado_validacion: estadoVal,
-          validado: estadoVal === "validado",
-        });
+    // ---- Hallazgos
+    {
+      for (let i = 0; i < hallazgosCandidates.length; i++) {
+        if (hallazgosCls.outcomes[i] === "new") {
+          const innExt = toStr(data.hallazgos[i].ID_Innovacion);
+          const innUuid = innExt ? innovacionIds.get(innExt) : null;
+          if (!innUuid) {
+            hallazgosCls.outcomes[i] = "skip";
+            continue;
+          }
+          (hallazgosCandidates[i] as Record<string, unknown>).innovacion_id = innUuid;
+        }
       }
 
-      const { rows: inserted, written } = await upsertByExternalId<{
-        id: string;
-        external_id: string;
-      }>(supabase, "hallazgos", rows);
-      summary.hallazgos.written = written;
-      for (const x of inserted) {
-        if (x.external_id) hallazgoIds.set(x.external_id, x.id);
-      }
+      const ids = await writeEntity(
+        "hallazgos",
+        hallazgosCandidates,
+        hallazgosCls.outcomes,
+        hallazgosExisting,
+        "hallazgos",
+      );
+      ids.forEach((v, k) => hallazgoIds.set(k, v));
     }
 
-    // ---- 4.7 RECOMENDACIONES (depende de Hallazgos) ----
-    if (data.recomendaciones.length > 0) {
-      const rows = data.recomendaciones.map((r) => ({
-        external_id: toStr(r.ID_Recomendacion),
-        titulo: toStr(r.Titulo_recomendacion) ?? "(sin título)",
-        descripcion: toStr(r.Descripcion) ?? "(sin descripción)",
-        ambito: filterEnum(splitList(r.Ambito_aplicacion), AMBITO_RECOMENDACION_VALUES),
-        destinatarios: toStr(r.Destinatarios),
-        alcance: mapEnum(r.Alcance_territorial, ALCANCE_RECOMENDACION_MAP),
-        estado: mapEnum(r.Estado, ESTADO_RECOMENDACION_MAP),
-      }));
+    // ---- Recomendaciones
+    {
+      const ids = await writeEntity(
+        "recomendaciones",
+        recomendacionesCandidates,
+        recomendacionesCls.outcomes,
+        recomendacionesExisting,
+        "recomendaciones",
+      );
 
-      const recIds = new Map<string, string>();
-      const { rows: inserted, written } = await upsertByExternalId<{
-        id: string;
-        external_id: string;
-      }>(supabase, "recomendaciones", rows);
-      summary.recomendaciones.written = written;
-      for (const x of inserted) {
-        if (x.external_id) recIds.set(x.external_id, x.id);
-      }
-
-      // Sync N:M recomendaciones_hallazgos
+      // Reconstruir recomendaciones_hallazgos para todas las recomendaciones del archivo
       for (const r of data.recomendaciones) {
         const recExt = toStr(r.ID_Recomendacion);
-        const recUuid = recExt ? recIds.get(recExt) : null;
+        const recUuid = recExt ? ids.get(recExt) : null;
         if (!recUuid) continue;
 
         const hallTokens = splitList(r.IDs_Hallazgos);
@@ -846,13 +1235,7 @@ Deno.serve(async (req) => {
           ),
         ).map((hallazgo_id) => ({ recomendacion_id: recUuid, hallazgo_id }));
 
-        await syncRelations(
-          supabase,
-          "recomendaciones_hallazgos",
-          "recomendacion_id",
-          recUuid,
-          links,
-        );
+        await syncRelations(supabase, "recomendaciones_hallazgos", "recomendacion_id", recUuid, links);
       }
     }
 
@@ -866,6 +1249,9 @@ Deno.serve(async (req) => {
       ),
       summary: Object.fromEntries(
         Object.entries(summary).map(([k, v]) => [k, v.written]),
+      ),
+      skipped: Object.fromEntries(
+        Object.entries(summary).map(([k, v]) => [k, v.skipped]),
       ),
       details: summary,
       log_id: logId,

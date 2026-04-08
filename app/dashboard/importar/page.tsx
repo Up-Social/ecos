@@ -10,6 +10,8 @@ import {
   ListChecks,
   Eye,
   X,
+  Download,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -107,21 +109,32 @@ export default function ImportarPage() {
   // ---------------------------------------------------------------------------
   return (
     <div className="space-y-8">
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Importar Excel</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Sube un archivo .xlsx con las hojas del modelo ECOS. Usa el modo
-            simulación para previsualizar sin escribir en la base de datos.
+            Sube un archivo .xlsx con el formato de la plantilla ECOS. Si una
+            fila ya existe idéntica, se omite. Si tiene el mismo identificador
+            o nombre con contenido modificado, la importación se detiene.
           </p>
         </div>
-        <Link
-          href="/dashboard/logs"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700"
-        >
-          <ListChecks className="h-4 w-4" />
-          Ver historial
-        </Link>
+        <div className="flex flex-shrink-0 items-center gap-3">
+          <a
+            href="/templates/ECOS_Plantilla.xlsx"
+            download
+            className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            <Download className="h-4 w-4" />
+            Descargar plantilla
+          </a>
+          <Link
+            href="/dashboard/logs"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700"
+          >
+            <ListChecks className="h-4 w-4" />
+            Ver historial
+          </Link>
+        </div>
       </div>
 
       {/* ------------------------------------------------------------------- */}
@@ -238,24 +251,33 @@ export default function ImportarPage() {
 function ResultCard({ result }: { result: ImportResult }) {
   const ok = result.ok;
   const summary = result.summary ?? {};
+  const skipped = result.skipped ?? {};
+  const validationErrors = result.validation_errors ?? [];
   const entries = Object.entries(summary);
-  const totalRows = entries.reduce((sum, [, n]) => sum + n, 0);
+  const hasValidationErrors = validationErrors.length > 0;
+
+  // Estados visuales:
+  // - OK exitoso (verde)
+  // - Error de validación con lista (ámbar/rojo, pausa la importación)
+  // - Error genérico (rojo)
+  const headerTone = ok
+    ? "border-green-100 bg-green-50"
+    : hasValidationErrors
+      ? "border-amber-100 bg-amber-50"
+      : "border-red-100 bg-red-50";
+  const borderTone = ok
+    ? "border-green-200"
+    : hasValidationErrors
+      ? "border-amber-200"
+      : "border-red-200";
 
   return (
-    <div
-      className={cn(
-        "overflow-hidden rounded-lg border bg-white",
-        ok ? "border-green-200" : "border-red-200",
-      )}
-    >
-      <header
-        className={cn(
-          "flex items-center gap-2 border-b px-4 py-3",
-          ok ? "border-green-100 bg-green-50" : "border-red-100 bg-red-50",
-        )}
-      >
+    <div className={cn("overflow-hidden rounded-lg border bg-white", borderTone)}>
+      <header className={cn("flex items-center gap-2 border-b px-4 py-3", headerTone)}>
         {ok ? (
           <CheckCircle2 className="h-5 w-5 text-green-600" />
+        ) : hasValidationErrors ? (
+          <AlertTriangle className="h-5 w-5 text-amber-600" />
         ) : (
           <XCircle className="h-5 w-5 text-red-600" />
         )}
@@ -263,20 +285,34 @@ function ResultCard({ result }: { result: ImportResult }) {
           <p
             className={cn(
               "text-sm font-medium",
-              ok ? "text-green-900" : "text-red-900",
+              ok
+                ? "text-green-900"
+                : hasValidationErrors
+                  ? "text-amber-900"
+                  : "text-red-900",
             )}
           >
             {ok
               ? result.dry_run
                 ? "Simulación completada"
                 : "Importación completada"
-              : "Error en la importación"}
+              : hasValidationErrors
+                ? "Importación pausada — se han detectado conflictos"
+                : "Error en la importación"}
           </p>
           {ok && (
             <p className="text-xs text-slate-600">
-              {totalRows} filas{" "}
-              {result.dry_run ? "encontradas" : "procesadas"} · {entries.length}{" "}
-              entidades
+              {entries.reduce((s, [, n]) => s + n, 0)} filas insertadas ·{" "}
+              {Object.values(skipped).reduce((s, n) => s + (n ?? 0), 0)} omitidas
+              (ya existían sin cambios)
+            </p>
+          )}
+          {hasValidationErrors && (
+            <p className="text-xs text-amber-800">
+              {validationErrors.length} conflicto
+              {validationErrors.length === 1 ? "" : "s"} detectado
+              {validationErrors.length === 1 ? "" : "s"}. No se ha escrito nada
+              en la base de datos.
             </p>
           )}
         </div>
@@ -288,7 +324,7 @@ function ResultCard({ result }: { result: ImportResult }) {
         )}
       </header>
 
-      {/* Stats */}
+      {/* Stats: insertadas + omitidas por entidad */}
       {ok && entries.length > 0 && (
         <div className="overflow-hidden">
           <table className="w-full text-sm">
@@ -298,7 +334,10 @@ function ResultCard({ result }: { result: ImportResult }) {
                   Entidad
                 </th>
                 <th className="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-slate-500">
-                  Filas
+                  Insertadas
+                </th>
+                <th className="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-slate-500">
+                  Omitidas
                 </th>
               </tr>
             </thead>
@@ -311,6 +350,9 @@ function ResultCard({ result }: { result: ImportResult }) {
                   <td className="px-4 py-2 text-right font-mono text-slate-900">
                     {count}
                   </td>
+                  <td className="px-4 py-2 text-right font-mono text-slate-400">
+                    {skipped[key] ?? 0}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -318,8 +360,27 @@ function ResultCard({ result }: { result: ImportResult }) {
         </div>
       )}
 
-      {/* Error con detalle */}
-      {!ok && result.error && (
+      {/* Lista de errores de validación */}
+      {hasValidationErrors && (
+        <div className="divide-y divide-slate-100">
+          {validationErrors.map((err, idx) => (
+            <div key={idx} className="flex gap-3 px-4 py-3">
+              <div className="flex-shrink-0 pt-0.5">
+                <Badge tone={err.type === "modified" ? "amber" : "red"}>
+                  {err.sheet}
+                  {err.row ? ` · fila ${err.row}` : ""}
+                </Badge>
+              </div>
+              <div className="flex-1 text-sm text-slate-700">
+                {err.message}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Error genérico */}
+      {!ok && !hasValidationErrors && result.error && (
         <div className="p-4">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-700">
             Detalle del error

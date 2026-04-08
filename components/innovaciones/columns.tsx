@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/Badge";
 import type {
   InnovacionConRelaciones,
   EstadoInnovacion,
-  NivelImpacto,
 } from "@/lib/supabase/types";
 
 const estadoTone: Record<
@@ -27,32 +26,32 @@ const estadoLabel: Record<EstadoInnovacion, string> = {
   escalado: "Escalado",
 };
 
-const impactoLabel: Record<NivelImpacto, string> = {
-  comunitaria: "Comunitaria",
-  local: "Local",
-  autonomica: "Autonómica",
-  estatal: "Estatal",
-  internacional: "Internacional",
-};
-
 export const innovacionesColumns: ColumnDef<InnovacionConRelaciones>[] = [
+  {
+    accessorKey: "external_id",
+    header: "ID",
+    meta: { width: "6rem" },
+    cell: ({ row }) =>
+      row.original.external_id ? (
+        <span className="font-mono text-xs text-slate-500">
+          {row.original.external_id}
+        </span>
+      ) : (
+        <span className="text-slate-400">—</span>
+      ),
+  },
   {
     accessorKey: "nombre",
     header: "Nombre",
+    meta: { width: "50%" },
     cell: ({ row }) => (
-      <div>
-        <div className="font-medium text-slate-900">{row.original.nombre}</div>
-        {row.original.descripcion && (
-          <div className="line-clamp-1 text-xs text-slate-500">
-            {row.original.descripcion}
-          </div>
-        )}
-      </div>
+      <div className="font-medium text-slate-900">{row.original.nombre}</div>
     ),
   },
   {
     id: "proyecto",
     header: "Proyecto",
+    meta: { width: "30%" },
     cell: ({ row }) => (
       <span className="text-slate-700">
         {row.original.proyecto?.nombre ?? (
@@ -64,6 +63,7 @@ export const innovacionesColumns: ColumnDef<InnovacionConRelaciones>[] = [
   {
     accessorKey: "estado",
     header: "Estado",
+    meta: { width: "9rem" },
     cell: ({ row }) => {
       const e = row.original.estado;
       if (!e) return <span className="text-slate-400">—</span>;
@@ -71,20 +71,9 @@ export const innovacionesColumns: ColumnDef<InnovacionConRelaciones>[] = [
     },
   },
   {
-    accessorKey: "nivel_impacto",
-    header: "Impacto",
-    cell: ({ row }) => {
-      const i = row.original.nivel_impacto;
-      return i ? (
-        <span className="text-slate-700">{impactoLabel[i]}</span>
-      ) : (
-        <span className="text-slate-400">—</span>
-      );
-    },
-  },
-  {
     id: "retos",
     header: "Retos",
+    meta: { width: "5rem" },
     cell: ({ row }) => {
       const n = row.original.retos.length;
       return n > 0 ? (

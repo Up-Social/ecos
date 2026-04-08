@@ -21,15 +21,41 @@ const tipoTone: Record<TipoAgente, "blue" | "green" | "purple" | "amber"> = {
 
 export const agentesColumns: ColumnDef<Agente>[] = [
   {
+    accessorKey: "external_id",
+    header: "ID",
+    meta: { width: "5rem" },
+    cell: ({ row }) =>
+      row.original.external_id ? (
+        <span className="font-mono text-xs text-slate-500">
+          {row.original.external_id}
+        </span>
+      ) : (
+        <span className="text-slate-400">—</span>
+      ),
+  },
+  {
     accessorKey: "nombre",
     header: "Nombre",
+    meta: { width: "30%" },
     cell: ({ row }) => (
       <span className="font-medium text-slate-900">{row.original.nombre}</span>
     ),
   },
   {
+    accessorKey: "municipio_sede",
+    header: "Municipio",
+    meta: { width: "10rem" },
+    cell: ({ row }) =>
+      row.original.municipio_sede ? (
+        <span className="text-slate-700">{row.original.municipio_sede}</span>
+      ) : (
+        <span className="text-slate-400">—</span>
+      ),
+  },
+  {
     accessorKey: "tipo_agente",
     header: "Tipo",
+    meta: { width: "9rem" },
     cell: ({ row }) => {
       const t = row.original.tipo_agente;
       if (!t) return <span className="text-slate-400">—</span>;
@@ -39,6 +65,7 @@ export const agentesColumns: ColumnDef<Agente>[] = [
   {
     accessorKey: "email",
     header: "Email",
+    meta: { width: "25%" },
     cell: ({ row }) =>
       row.original.email ? (
         <a
@@ -55,6 +82,7 @@ export const agentesColumns: ColumnDef<Agente>[] = [
   {
     accessorKey: "web",
     header: "Web",
+    meta: { width: "20%" },
     cell: ({ row }) =>
       row.original.web ? (
         <a
@@ -65,7 +93,7 @@ export const agentesColumns: ColumnDef<Agente>[] = [
           className="inline-flex items-center gap-1 text-slate-700 hover:text-brand-600"
         >
           {row.original.web.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-          <ExternalLink className="h-3 w-3" />
+          <ExternalLink className="h-3 w-3 flex-shrink-0" />
         </a>
       ) : (
         <span className="text-slate-400">—</span>
