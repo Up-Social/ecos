@@ -40,3 +40,8 @@ next-env.d.ts
 /docs
 deploy.sh
 
+# Claude Code (local, no compartir en git)
+CLAUDE.md
+**/CLAUDE.md
+.claude/
+
