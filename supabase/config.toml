@@ -408,3 +408,12 @@ entrypoint = "./functions/import-excel/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/import-excel/*.html" ]
+
+[functions.process-embeddings]
+enabled = true
+# Worker de la cola de embeddings (Fase 10). Se dispara manualmente o por cron
+# (Fase 11). Usa SERVICE_ROLE internamente; protección opcional por secreto
+# compartido (EMBEDDINGS_WORKER_SECRET).
+verify_jwt = false
+import_map = "./functions/process-embeddings/deno.json"
+entrypoint = "./functions/process-embeddings/index.ts"

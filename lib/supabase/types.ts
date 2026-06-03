@@ -275,3 +275,34 @@ export interface ConversationSource {
   score: number | null;
   created_at: string;
 }
+
+// -----------------------------------------------------------------------------
+// Embeddings (Fase 10) — infraestructura vectorial
+// -----------------------------------------------------------------------------
+
+export type EmbeddingJobStatus = "pending" | "processing" | "done" | "error";
+
+// Fila de `embeddings`. El vector (`embedding`) no se expone en el cliente: solo
+// lo manejan el worker (service-role) y la búsqueda vectorial server-side (Fase 12).
+export interface EmbeddingRow {
+  id: string;
+  entity_type: EntityType;
+  entity_id: string;
+  content_hash: string;
+  model: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Fila de la cola `embedding_jobs`.
+export interface EmbeddingJob {
+  id: string;
+  entity_type: EntityType;
+  entity_id: string;
+  status: EmbeddingJobStatus;
+  attempts: number;
+  last_error: string | null;
+  run_after: string;
+  created_at: string;
+  updated_at: string;
+}

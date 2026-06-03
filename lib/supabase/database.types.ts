@@ -24,6 +24,7 @@ export type Database = {
           grupos_poblacion: string[] | null
           id: string
           interconexiones_ids: string | null
+          is_public: boolean
           municipio_sede: string | null
           nombre: string
           personas_implicadas: number | null
@@ -43,6 +44,7 @@ export type Database = {
           grupos_poblacion?: string[] | null
           id?: string
           interconexiones_ids?: string | null
+          is_public?: boolean
           municipio_sede?: string | null
           nombre: string
           personas_implicadas?: number | null
@@ -62,6 +64,7 @@ export type Database = {
           grupos_poblacion?: string[] | null
           id?: string
           interconexiones_ids?: string | null
+          is_public?: boolean
           municipio_sede?: string | null
           nombre?: string
           personas_implicadas?: number | null
@@ -78,6 +81,73 @@ export type Database = {
             columns: ["sede_territorio_id"]
             isOneToOne: false
             referencedRelation: "territorios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_sources: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          message_id: string
+          score: number | null
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          message_id: string
+          score?: number | null
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          message_id?: string
+          score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_sources_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -185,6 +255,7 @@ export type Database = {
           external_id: string | null
           grupos_poblacion: string[] | null
           id: string
+          is_public: boolean
           n_participantes: string | null
           nivel_impacto: string | null
           nombre: string
@@ -200,6 +271,7 @@ export type Database = {
           external_id?: string | null
           grupos_poblacion?: string[] | null
           id?: string
+          is_public?: boolean
           n_participantes?: string | null
           nivel_impacto?: string | null
           nombre: string
@@ -215,6 +287,7 @@ export type Database = {
           external_id?: string | null
           grupos_poblacion?: string[] | null
           id?: string
+          is_public?: boolean
           n_participantes?: string | null
           nivel_impacto?: string | null
           nombre?: string
@@ -453,6 +526,38 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       misiones: {
         Row: {
           created_at: string | null
@@ -460,6 +565,7 @@ export type Database = {
           external_id: string | null
           fuente_informacion: string | null
           id: string
+          is_public: boolean
           nombre: string
           notas_internas: string | null
           problema: string | null
@@ -471,6 +577,7 @@ export type Database = {
           external_id?: string | null
           fuente_informacion?: string | null
           id?: string
+          is_public?: boolean
           nombre: string
           notas_internas?: string | null
           problema?: string | null
@@ -482,6 +589,7 @@ export type Database = {
           external_id?: string | null
           fuente_informacion?: string | null
           id?: string
+          is_public?: boolean
           nombre?: string
           notas_internas?: string | null
           problema?: string | null
@@ -503,6 +611,7 @@ export type Database = {
           financiador: string | null
           grupos_poblacion: string[] | null
           id: string
+          is_public: boolean
           nombre: string
           presupuesto: number | null
           updated_at: string | null
@@ -520,6 +629,7 @@ export type Database = {
           financiador?: string | null
           grupos_poblacion?: string[] | null
           id?: string
+          is_public?: boolean
           nombre: string
           presupuesto?: number | null
           updated_at?: string | null
@@ -537,6 +647,7 @@ export type Database = {
           financiador?: string | null
           grupos_poblacion?: string[] | null
           id?: string
+          is_public?: boolean
           nombre?: string
           presupuesto?: number | null
           updated_at?: string | null
@@ -783,6 +894,7 @@ export type Database = {
           external_id: string | null
           fuente_informacion: string | null
           id: string
+          is_public: boolean
           nombre: string
           updated_at: string | null
         }
@@ -792,6 +904,7 @@ export type Database = {
           external_id?: string | null
           fuente_informacion?: string | null
           id?: string
+          is_public?: boolean
           nombre: string
           updated_at?: string | null
         }
@@ -801,6 +914,7 @@ export type Database = {
           external_id?: string | null
           fuente_informacion?: string | null
           id?: string
+          is_public?: boolean
           nombre?: string
           updated_at?: string | null
         }
