@@ -13,7 +13,7 @@
 -- Migración ADITIVA, idempotente y NO destructiva:
 --   - No modifica ni elimina tablas, columnas ni datos existentes.
 --   - Las tablas nacen vacías; la infraestructura queda inerte hasta que un
---     worker (Edge Function process-embeddings) la procese.
+--     worker (API route Next.js POST /api/embeddings) la procese.
 --
 -- NO incluye GraphRAG ni la automatización por triggers/cron (eso es Fase 11+).
 --
