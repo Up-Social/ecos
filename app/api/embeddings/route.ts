@@ -235,7 +235,32 @@ async function processJob(supabase: SupabaseClient, job: EmbeddingJob): Promise<
 }
 
 // -----------------------------------------------------------------------------
-// POST → procesa un lote de la cola.
+// Procesamiento de un lote de la cola (compartido por POST manual y GET cron).
+// -----------------------------------------------------------------------------
+
+async function runBatch(limit: number) {
+  const supabase = createAdminClient();
+
+  // Reclamar lote (atómico, SKIP LOCKED) vía RPC SECURITY DEFINER.
+  const { data: jobsData, error: claimErr } = await supabase.rpc("claim_embedding_jobs", {
+    p_limit: limit,
+  });
+  if (claimErr) {
+    return NextResponse.json({ error: `claim_embedding_jobs: ${claimErr.message}` }, { status: 500 });
+  }
+
+  const jobs = (jobsData ?? []) as unknown as EmbeddingJob[];
+  const summary = { claimed: jobs.length, done: 0, skipped: 0, failed: 0 };
+  for (const job of jobs) {
+    const outcome = await processJob(supabase, job);
+    summary[outcome] += 1;
+  }
+
+  return NextResponse.json({ ...summary, provider: PROVIDER, model: MODEL, dimension: DIMENSION });
+}
+
+// -----------------------------------------------------------------------------
+// POST → disparo MANUAL desde el panel (sesión con PANEL_ROLES).
 // -----------------------------------------------------------------------------
 
 export async function POST(req: Request) {
@@ -255,26 +280,20 @@ export async function POST(req: Request) {
     // body vacío o no-JSON → usar BATCH.
   }
 
-  const supabase = createAdminClient();
+  return runBatch(limit);
+}
 
-  // Reclamar lote (atómico, SKIP LOCKED) vía RPC SECURITY DEFINER.
-  const { data: jobsData, error: claimErr } = await supabase.rpc("claim_embedding_jobs", {
-    p_limit: limit,
-  });
+// -----------------------------------------------------------------------------
+// GET → disparo automático por CRON (Vercel Cron). Autenticado con CRON_SECRET.
+// El middleware deja pasar esta petición solo si el secreto coincide; aquí se
+// revalida (defensa en profundidad). Sin CRON_SECRET configurado → 401.
+// -----------------------------------------------------------------------------
 
-  if (claimErr) {
-    return NextResponse.json({ error: `claim_embedding_jobs: ${claimErr.message}` }, { status: 500 });
+export async function GET(req: Request) {
+  const secret = process.env.CRON_SECRET;
+  const auth = req.headers.get("authorization") ?? "";
+  if (!secret || auth !== `Bearer ${secret}`) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
-  const jobs = (jobsData ?? []) as unknown as EmbeddingJob[];
-  if (jobs.length === 0) {
-    return NextResponse.json({ claimed: 0, done: 0, skipped: 0, failed: 0, provider: PROVIDER, model: MODEL });
-  }
-
-  const summary = { claimed: jobs.length, done: 0, skipped: 0, failed: 0 };
-  for (const job of jobs) {
-    const outcome = await processJob(supabase, job);
-    summary[outcome] += 1;
-  }
-
-  return NextResponse.json({ ...summary, provider: PROVIDER, model: MODEL, dimension: DIMENSION });
+  return runBatch(BATCH);
 }

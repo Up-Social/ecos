@@ -60,3 +60,26 @@ export async function getEmbeddingsCount() {
     .from("embeddings")
     .select("*", { count: "exact", head: true });
 }
+
+// -----------------------------------------------------------------------------
+// Acciones del monitor (Fase 11). Disparo manual del worker y backfill.
+// -----------------------------------------------------------------------------
+
+/** Procesa un lote de la cola llamando al worker (`POST /api/embeddings`). */
+export async function processEmbeddingsBatch(limit?: number) {
+  const res = await fetch("/api/embeddings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(limit ? { limit } : {}),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return { data: null, error: { message: json?.error ?? "Error al procesar la cola" } };
+  }
+  return { data: json as Record<string, number>, error: null };
+}
+
+/** Encola (o reactiva) un embedding_job para TODAS las entidades existentes. */
+export async function reindexAllEmbeddings() {
+  return supabase.rpc("enqueue_all_embeddings");
+}

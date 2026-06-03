@@ -32,6 +32,16 @@ function isApiPath(pathname: string): boolean {
   return pathname.startsWith("/api/");
 }
 
+/** Petición de cron al worker de embeddings (Vercel Cron, Fase 11).
+ *  Se autoriza solo si trae el secreto `CRON_SECRET`; el handler GET lo revalida.
+ *  Permite que el cron drene la cola sin sesión, sin abrir el resto de /api/*. */
+function isEmbeddingsCron(request: NextRequest, pathname: string): boolean {
+  if (pathname !== "/api/embeddings") return false;
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return false;
+  return request.headers.get("authorization") === `Bearer ${secret}`;
+}
+
 /** Rutas del plano público que requieren sesión (cualquier rol). */
 function isPublicProtected(pathname: string): boolean {
   return pathname === "/perfil" || pathname.startsWith("/perfil/");
@@ -83,6 +93,14 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+
+  // ---------------------------------------------------------------------------
+  // CRON (Vercel) → worker de embeddings. Bypass acotado: solo /api/embeddings
+  // con CRON_SECRET válido. No afecta a los planos admin/público.
+  // ---------------------------------------------------------------------------
+  if (isEmbeddingsCron(request, pathname)) {
+    return response;
+  }
 
   // ---------------------------------------------------------------------------
   // PLANO ADMINISTRACIÓN

@@ -15,6 +15,7 @@ import {
   ListChecks,
   UserCog,
   Share2,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isSuperadmin, type RoleKey } from "@/lib/auth/roles";
@@ -78,6 +79,7 @@ const sections: NavSection[] = [
     items: [
       { href: "/dashboard/usuarios", label: "Usuarios", icon: UserCog },
       { href: "/dashboard/importar", label: "Importar Excel", icon: FileSpreadsheet },
+      { href: "/dashboard/embeddings", label: "Embeddings", icon: Sparkles },
       { href: "/dashboard/logs", label: "Logs", icon: ListChecks },
     ],
   },
