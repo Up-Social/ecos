@@ -152,6 +152,75 @@ export type Database = {
           },
         ]
       }
+      embedding_jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          last_error: string | null
+          run_after: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          last_error?: string | null
+          run_after?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          last_error?: string | null
+          run_after?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      embeddings: {
+        Row: {
+          content_hash: string
+          created_at: string
+          embedding: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          model: string
+          updated_at: string
+        }
+        Insert: {
+          content_hash: string
+          created_at?: string
+          embedding?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          model: string
+          updated_at?: string
+        }
+        Update: {
+          content_hash?: string
+          created_at?: string
+          embedding?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          model?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hallazgos: {
         Row: {
           created_at: string | null
@@ -1352,6 +1421,30 @@ export type Database = {
       }
     }
     Functions: {
+      claim_embedding_jobs: {
+        Args: { p_limit?: number }
+        Returns: {
+          attempts: number
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          last_error: string | null
+          run_after: string
+          status: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "embedding_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      enqueue_embedding_job: {
+        Args: { p_entity_id: string; p_entity_type: string }
+        Returns: string
+      }
       is_panel_user: { Args: never; Returns: boolean }
       is_superadmin: { Args: never; Returns: boolean }
       user_has_role: { Args: { rkey: string; uid: string }; Returns: boolean }
