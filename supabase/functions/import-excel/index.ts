@@ -683,7 +683,11 @@ Deno.serve(async (req) => {
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  // Tras desactivar las API keys legacy, se usa la NUEVA Secret key (sb_secret_...)
+  // desde un secret propio `SB_SECRET_KEY` (el prefijo SUPABASE_ está reservado por
+  // Supabase). Fallback a la auto-inyectada SUPABASE_SERVICE_ROLE_KEY por compatibilidad.
+  const serviceKey =
+    Deno.env.get("SB_SECRET_KEY") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) {
     return json({ error: "Variables de entorno de Supabase ausentes" }, 500);
   }
