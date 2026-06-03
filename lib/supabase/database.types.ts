@@ -1446,6 +1446,23 @@ export type Database = {
         Args: { p_entity_id: string; p_entity_type: string }
         Returns: string
       }
+      graphrag_related: {
+        Args: {
+          only_public?: boolean
+          p_ids: string[]
+          p_limit?: number
+          p_types: string[]
+        }
+        Returns: {
+          direction: string
+          entity_id: string
+          entity_type: string
+          relation_code: string
+          relation_name: string
+          seed_id: string
+          seed_type: string
+        }[]
+      }
       is_panel_user: { Args: never; Returns: boolean }
       is_public_entity: {
         Args: { p_id: string; p_type: string }

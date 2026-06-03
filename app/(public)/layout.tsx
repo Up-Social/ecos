@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LogIn } from "lucide-react";
+import { LogIn, Sparkles } from "lucide-react";
 
 // =============================================================================
 // Layout del Portal Público (plano `/`).
@@ -29,6 +29,13 @@ export default function PublicLayout({
               className="text-sm font-medium text-slate-600 hover:text-slate-900"
             >
               Explorar
+            </Link>
+            <Link
+              href="/asistente"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900"
+            >
+              <Sparkles className="h-4 w-4" />
+              Asistente
             </Link>
             <Link
               href="/admin/login"

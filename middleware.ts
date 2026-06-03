@@ -44,7 +44,12 @@ function isEmbeddingsCron(request: NextRequest, pathname: string): boolean {
 
 /** Rutas del plano público que requieren sesión (cualquier rol). */
 function isPublicProtected(pathname: string): boolean {
-  return pathname === "/perfil" || pathname.startsWith("/perfil/");
+  return (
+    pathname === "/perfil" ||
+    pathname.startsWith("/perfil/") ||
+    pathname === "/asistente" ||
+    pathname.startsWith("/asistente/")
+  );
 }
 
 /** Rutas del plano de administración que exigen PANEL_ROLES.
