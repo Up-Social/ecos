@@ -11,3 +11,4 @@ export * from "./hallazgo";
 export * from "./recomendacion";
 export * from "./relationship";
 export * from "./conversation";
+export * from "./search";

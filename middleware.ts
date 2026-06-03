@@ -53,6 +53,11 @@ function isAdminPlane(pathname: string): boolean {
   if (pathname === "/admin/login" || pathname.startsWith("/admin/login/")) {
     return false;
   }
+  // Búsqueda semántica: accesible también a anónimos (el handler restringe a
+  // contenido público si no hay sesión de panel). No exige PANEL_ROLES aquí.
+  if (pathname === "/api/search") {
+    return false;
+  }
   return (
     pathname === "/admin" ||
     pathname.startsWith("/admin/") ||

@@ -306,3 +306,25 @@ export interface EmbeddingJob {
   created_at: string;
   updated_at: string;
 }
+
+// -----------------------------------------------------------------------------
+// Búsqueda semántica (Fase 12)
+// -----------------------------------------------------------------------------
+
+// Fuente: entidad que respalda un resultado, con su score de similitud.
+export interface SearchSource {
+  entity_type: EntityType;
+  entity_id: string;
+  score: number;
+}
+
+// Resultado enriquecido (fuente + título/nombre de la entidad).
+export interface SearchResult extends SearchSource {
+  title: string | null;
+}
+
+export interface SearchResponse {
+  query: string;
+  results: SearchResult[];
+  sources: SearchSource[];
+}
