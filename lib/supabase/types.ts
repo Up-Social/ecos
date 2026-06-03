@@ -199,3 +199,48 @@ export interface HallazgoConRelaciones extends Hallazgo {
 export interface RecomendacionConRelaciones extends Recomendacion {
   hallazgos: Pick<Hallazgo, "id" | "titulo">[];
 }
+
+// -----------------------------------------------------------------------------
+// Knowledge Graph (Fase 03)
+// -----------------------------------------------------------------------------
+
+/** Entidades de dominio que pueden participar en el grafo. */
+export type EntityType =
+  | "misiones"
+  | "retos"
+  | "agentes"
+  | "proyectos"
+  | "innovaciones"
+  | "hallazgos"
+  | "recomendaciones";
+
+// Tipo de relación del catálogo (relationship_types)
+export interface RelationshipType {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  // null = el tipo aplica a cualquier entidad de origen/destino
+  source_entity_type: EntityType | null;
+  target_entity_type: EntityType | null;
+  active: boolean;
+  created_at: string;
+}
+
+// Arista del grafo (relationships)
+export interface Relationship {
+  id: string;
+  source_entity_type: EntityType;
+  source_entity_id: string;
+  relationship_type_id: string;
+  target_entity_type: EntityType;
+  target_entity_id: string;
+  description: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+// Relación con su tipo embebido (para listado y detalle)
+export interface RelationshipConTipo extends Relationship {
+  relationship_type: Pick<RelationshipType, "id" | "code" | "name"> | null;
+}

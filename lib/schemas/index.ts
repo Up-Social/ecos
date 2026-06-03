@@ -9,3 +9,4 @@ export * from "./reto";
 export * from "./innovacion";
 export * from "./hallazgo";
 export * from "./recomendacion";
+export * from "./relationship";
