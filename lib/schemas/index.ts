@@ -12,3 +12,4 @@ export * from "./recomendacion";
 export * from "./relationship";
 export * from "./conversation";
 export * from "./search";
+export * from "./chat";

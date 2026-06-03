@@ -58,6 +58,11 @@ function isAdminPlane(pathname: string): boolean {
   if (pathname === "/api/search") {
     return false;
   }
+  // Asistente GraphRAG: no exige PANEL_ROLES (lo usan también usuarios del portal).
+  // El handler exige sesión (anónimo → 401) y aplica visibilidad por rol.
+  if (pathname === "/api/chat") {
+    return false;
+  }
   return (
     pathname === "/admin" ||
     pathname.startsWith("/admin/") ||

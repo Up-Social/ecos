@@ -1447,7 +1447,24 @@ export type Database = {
         Returns: string
       }
       is_panel_user: { Args: never; Returns: boolean }
+      is_public_entity: {
+        Args: { p_id: string; p_type: string }
+        Returns: boolean
+      }
       is_superadmin: { Args: never; Returns: boolean }
+      match_embeddings: {
+        Args: {
+          filter_entity_type?: string
+          match_count?: number
+          only_public?: boolean
+          query_embedding: string
+        }
+        Returns: {
+          entity_id: string
+          entity_type: string
+          similarity: number
+        }[]
+      }
       user_has_role: { Args: { rkey: string; uid: string }; Returns: boolean }
     }
     Enums: {

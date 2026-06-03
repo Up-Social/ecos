@@ -328,3 +328,26 @@ export interface SearchResponse {
   results: SearchResult[];
   sources: SearchSource[];
 }
+
+// -----------------------------------------------------------------------------
+// GraphRAG / Chat (Fase 13)
+// -----------------------------------------------------------------------------
+
+// Fuente citada en una respuesta del asistente (entidad + score + origen).
+export interface ChatSource {
+  entity_type: EntityType;
+  entity_id: string;
+  title: string | null;
+  score: number;
+  origin: "vector" | "grafo";
+  cite: number;
+}
+
+// Entidad relacionada (expansión por grafo) mostrada junto a la respuesta.
+export interface ChatRelatedEntity {
+  entity_type: EntityType;
+  entity_id: string;
+  relation_code: string | null;
+  relation_name: string | null;
+  direction: string;
+}
