@@ -1441,6 +1441,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      enqueue_all_embeddings: { Args: never; Returns: number }
       enqueue_embedding_job: {
         Args: { p_entity_id: string; p_entity_type: string }
         Returns: string
