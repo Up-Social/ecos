@@ -32,6 +32,11 @@ function isApiPath(pathname: string): boolean {
   return pathname.startsWith("/api/");
 }
 
+/** Rutas del plano público que requieren sesión (cualquier rol). */
+function isPublicProtected(pathname: string): boolean {
+  return pathname === "/perfil" || pathname.startsWith("/perfil/");
+}
+
 /** Rutas del plano de administración que exigen PANEL_ROLES.
  *  /admin/login queda EXCLUIDA (es la puerta de acceso, debe ser pública). */
 function isAdminPlane(pathname: string): boolean {
@@ -125,10 +130,33 @@ export async function middleware(request: NextRequest) {
   // PLANO PÚBLICO
   // ---------------------------------------------------------------------------
 
-  // Usuario autenticado que visita una pantalla de login → al panel.
-  if (user && (pathname === "/admin/login" || pathname === "/login")) {
+  // /perfil requiere sesión (cualquier rol). Sin sesión → login público.
+  if (isPublicProtected(pathname) && !user) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = "/login";
+    url.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // Usuario autenticado que visita una pantalla de login → destino según rol
+  // (evita bucles: un usuario sin panel en /admin/login va a /perfil).
+  if (user && (pathname === "/admin/login" || pathname === "/login")) {
+    const { data: rolesRows } = await supabase
+      .from("user_roles")
+      .select("role_key")
+      .eq("user_id", user.id);
+    const roles = ((rolesRows ?? []) as { role_key: RoleKey }[]).map(
+      (r) => r.role_key,
+    );
+    const hasPanelAccess = roles.some((r) => PANEL_ROLES.includes(r));
+
+    const url = request.nextUrl.clone();
+    url.search = "";
+    if (pathname === "/admin/login") {
+      url.pathname = hasPanelAccess ? "/dashboard" : "/perfil";
+    } else {
+      url.pathname = "/perfil";
+    }
     return NextResponse.redirect(url);
   }
 
