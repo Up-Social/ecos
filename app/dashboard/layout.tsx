@@ -13,10 +13,10 @@ export default async function DashboardLayout({
   // Doble check además del middleware (defensa en profundidad)
   const current = await getCurrentUserWithRoles();
   if (!current) {
-    redirect("/login");
+    redirect("/admin/login");
   }
   if (!canAccessPanel(current.roles)) {
-    redirect("/login?reason=no_panel_access");
+    redirect("/admin/login?reason=no_panel_access");
   }
 
   return (

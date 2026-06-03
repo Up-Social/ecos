@@ -7,7 +7,15 @@ import { Button } from "@/components/ui/Button";
 import { Input, Field } from "@/components/ui/Input";
 import { createClient } from "@/lib/supabase/client";
 
-function LoginForm() {
+// =============================================================================
+// Login de ADMINISTRACIÓN `/admin/login`.
+// Reubica el login del panel (antes en `/login`). Autentica con email/password
+// y, tras el éxito, va al destino solicitado o a /dashboard.
+// Vive FUERA del route group guardado `(panel)`, por lo que es accesible sin
+// sesión (el middleware lo trata como público).
+// =============================================================================
+
+function AdminLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -39,7 +47,7 @@ function LoginForm() {
       <div className="text-center">
         <h1 className="text-2xl font-semibold text-slate-900">ECOS</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Inicia sesión en el panel de administración
+          Acceso al panel de administración
         </p>
       </div>
 
@@ -89,13 +97,13 @@ function LoginForm() {
   );
 }
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <Suspense
         fallback={<div className="text-sm text-slate-400">Cargando…</div>}
       >
-        <LoginForm />
+        <AdminLoginForm />
       </Suspense>
     </div>
   );

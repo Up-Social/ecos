@@ -2,28 +2,49 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { PANEL_ROLES, type RoleKey } from "@/lib/auth/roles";
 
-// -----------------------------------------------------------------------------
-// Middleware de autenticación + autorización por roles.
-// - Refresca la sesión de Supabase en cada request.
-// - Redirige a /login si no hay usuario y la ruta requiere auth.
-// - Redirige a /login si el usuario está autenticado pero no tiene un rol
-//   con acceso al panel (superadmin o gestor) cuando intenta entrar a
-//   /dashboard. Para /api/* devuelve 403 en el mismo caso.
-// -----------------------------------------------------------------------------
+// =============================================================================
+// Middleware con DOS PLANOS independientes (Fase 06):
+//
+//   · Plano ADMINISTRACIÓN → /admin/*, /dashboard/*, /api/*
+//       Requiere sesión + PANEL_ROLES (superadmin/gestor).
+//       Sin sesión → /admin/login.  Sin rol → /admin/login (API: 403 JSON).
+//       Excepción: /admin/login es público (vive fuera del área guardada).
+//
+//   · Plano PÚBLICO → /, /login, /admin/login, /auth/callback
+//       Acceso libre (sin sesión). Los usuarios públicos llegan en la Fase 07.
+//
+// Next.js permite un único archivo de middleware: la "independencia" se modela
+// como ramas separadas (handleAdminPlane / plano público) sobre el mismo
+// refresco de sesión de Supabase.
+// =============================================================================
 
-const PUBLIC_PATHS = ["/login", "/auth/callback"];
+// Rutas públicas (sin requerir sesión).
+const PUBLIC_PATHS = ["/", "/login", "/admin/login", "/auth/callback"];
 
-function isPanelPath(pathname: string) {
-  return (
-    pathname === "/dashboard" ||
-    pathname.startsWith("/dashboard/") ||
-    pathname === "/admin" ||
-    pathname.startsWith("/admin/")
+function isPublicPath(pathname: string): boolean {
+  if (pathname === "/") return true;
+  return PUBLIC_PATHS.filter((p) => p !== "/").some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
 }
 
-function isApiPath(pathname: string) {
+function isApiPath(pathname: string): boolean {
   return pathname.startsWith("/api/");
+}
+
+/** Rutas del plano de administración que exigen PANEL_ROLES.
+ *  /admin/login queda EXCLUIDA (es la puerta de acceso, debe ser pública). */
+function isAdminPlane(pathname: string): boolean {
+  if (pathname === "/admin/login" || pathname.startsWith("/admin/login/")) {
+    return false;
+  }
+  return (
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/") ||
+    pathname === "/dashboard" ||
+    pathname.startsWith("/dashboard/") ||
+    isApiPath(pathname)
+  );
 }
 
 export async function middleware(request: NextRequest) {
@@ -57,25 +78,23 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
-  // 1. No autenticado → /login (excepto rutas públicas)
-  if (!user && !isPublic) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(url);
-  }
+  // ---------------------------------------------------------------------------
+  // PLANO ADMINISTRACIÓN
+  // ---------------------------------------------------------------------------
+  if (isAdminPlane(pathname)) {
+    // 1. Sin sesión
+    if (!user) {
+      if (isApiPath(pathname)) {
+        return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+      }
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/login";
+      url.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(url);
+    }
 
-  // 2. Autenticado entrando a /login → al panel
-  if (user && pathname === "/login") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
-  }
-
-  // 3. Autenticado: comprobar roles solo en rutas del panel o API
-  if (user && (isPanelPath(pathname) || isApiPath(pathname))) {
+    // 2. Con sesión: comprobar PANEL_ROLES
     const { data: rolesRows } = await supabase
       .from("user_roles")
       .select("role_key")
@@ -94,12 +113,28 @@ export async function middleware(request: NextRequest) {
         );
       }
       const url = request.nextUrl.clone();
-      url.pathname = "/login";
+      url.pathname = "/admin/login";
       url.searchParams.set("reason", "no_panel_access");
       return NextResponse.redirect(url);
     }
+
+    return response;
   }
 
+  // ---------------------------------------------------------------------------
+  // PLANO PÚBLICO
+  // ---------------------------------------------------------------------------
+
+  // Usuario autenticado que visita una pantalla de login → al panel.
+  if (user && (pathname === "/admin/login" || pathname === "/login")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
+  // Resto de rutas públicas (incluida `/`): acceso libre.
+  // `isPublicPath` se usa como guardia defensiva por si se añaden rutas nuevas.
+  void isPublicPath(pathname);
   return response;
 }
 

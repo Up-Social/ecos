@@ -35,7 +35,7 @@ export function Topbar({ email }: Props) {
 
   async function handleSignOut() {
     await supabase.auth.signOut();
-    router.push("/login");
+    router.push("/admin/login");
     router.refresh();
   }
 

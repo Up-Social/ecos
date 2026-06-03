@@ -6,25 +6,28 @@ import { getCurrentUserWithRoles } from "@/lib/auth/getCurrentUser";
 import { canAccessPanel } from "@/lib/auth/roles";
 
 // =============================================================================
-// Layout de /admin — defensa en profundidad (además del middleware).
+// Layout del plano de ADMINISTRACIÓN guardado — defensa en profundidad.
 //
-// Nota de alcance (Fase 05): se introduce el espacio /admin solo para alojar
-// la visualización del grafo, con la misma protección que /dashboard
-// (PANEL_ROLES). La separación admin/público completa (login propio, portal)
-// corresponde a la Fase 06.
+// Cubre las rutas administrativas bajo /admin que requieren PANEL_ROLES
+// (p.ej. /admin y /admin/graph). El login /admin/login queda FUERA de este
+// route group, por lo que es accesible sin sesión.
+//
+// Nota: el panel principal sigue en /dashboard/* (su propio layout). La
+// migración del panel a /admin es una decisión pendiente (ver
+// PRE_IMPLEMENTATION_ANALYSIS de la Fase 06).
 // =============================================================================
 
-export default async function AdminLayout({
+export default async function AdminPanelLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const current = await getCurrentUserWithRoles();
   if (!current) {
-    redirect("/login");
+    redirect("/admin/login");
   }
   if (!canAccessPanel(current.roles)) {
-    redirect("/login?reason=no_panel_access");
+    redirect("/admin/login?reason=no_panel_access");
   }
 
   return (
