@@ -192,3 +192,88 @@ export async function updateRelationship(
 export async function deleteRelationship(id: string) {
   return supabase.from("relationships").delete().eq("id", id);
 }
+
+// =============================================================================
+// Grafo completo (para la visualización /admin/graph) — solo lectura
+// =============================================================================
+
+export interface GraphNode {
+  /** Id único en el grafo: `${entityType}:${entityId}`. */
+  id: string;
+  entityType: EntityType;
+  entityId: string;
+  label: string;
+}
+
+export interface GraphEdge {
+  id: string;
+  source: string; // GraphNode.id
+  target: string; // GraphNode.id
+  label: string; // nombre del tipo de relación
+  typeCode: string; // code del tipo de relación
+}
+
+export interface GraphData {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
+/**
+ * Construye el grafo completo a partir de `relationships`: cada relación aporta
+ * una arista y dos nodos (las entidades que conecta). Las etiquetas de los nodos
+ * se resuelven con `getEntityOptions` (una consulta por tipo presente).
+ */
+export async function getGraphData(): Promise<{
+  data: GraphData;
+  error: { message: string } | null;
+}> {
+  const { data: rels, error } = await getRelationships();
+  if (error) return { data: { nodes: [], edges: [] }, error };
+
+  const relationships = rels ?? [];
+
+  // 1. Endpoints distintos por tipo de entidad
+  const endpointsByType = new Map<EntityType, Set<string>>();
+  const addEndpoint = (type: EntityType, id: string) => {
+    if (!endpointsByType.has(type)) endpointsByType.set(type, new Set());
+    endpointsByType.get(type)!.add(id);
+  };
+  for (const r of relationships) {
+    addEndpoint(r.source_entity_type, r.source_entity_id);
+    addEndpoint(r.target_entity_type, r.target_entity_id);
+  }
+
+  // 2. Resolver etiquetas (una consulta por tipo presente)
+  const labelMap: Record<string, string> = {};
+  await Promise.all(
+    Array.from(endpointsByType.keys()).map(async (type) => {
+      const { data } = await getEntityOptions(type);
+      for (const o of data) labelMap[`${type}:${o.id}`] = o.label;
+    }),
+  );
+
+  // 3. Nodos (solo los que aparecen en alguna relación)
+  const nodes: GraphNode[] = [];
+  for (const [type, ids] of endpointsByType) {
+    for (const id of ids) {
+      const key = `${type}:${id}`;
+      nodes.push({
+        id: key,
+        entityType: type,
+        entityId: id,
+        label: labelMap[key] ?? id,
+      });
+    }
+  }
+
+  // 4. Aristas
+  const edges: GraphEdge[] = relationships.map((r) => ({
+    id: r.id,
+    source: `${r.source_entity_type}:${r.source_entity_id}`,
+    target: `${r.target_entity_type}:${r.target_entity_id}`,
+    label: r.relationship_type?.name ?? "",
+    typeCode: r.relationship_type?.code ?? "",
+  }));
+
+  return { data: { nodes, edges }, error: null };
+}

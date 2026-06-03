@@ -14,6 +14,7 @@ import {
   FileSpreadsheet,
   ListChecks,
   UserCog,
+  Share2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isSuperadmin, type RoleKey } from "@/lib/auth/roles";
@@ -63,6 +64,12 @@ const sections: NavSection[] = [
     items: [
       { href: "/dashboard/hallazgos", label: "Hallazgos", icon: Microscope },
       { href: "/dashboard/recomendaciones", label: "Recomendaciones", icon: Megaphone },
+    ],
+  },
+  {
+    title: "Exploración",
+    items: [
+      { href: "/admin/graph", label: "Grafo de conocimiento", icon: Share2 },
     ],
   },
   {

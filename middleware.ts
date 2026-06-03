@@ -14,7 +14,12 @@ import { PANEL_ROLES, type RoleKey } from "@/lib/auth/roles";
 const PUBLIC_PATHS = ["/login", "/auth/callback"];
 
 function isPanelPath(pathname: string) {
-  return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  return (
+    pathname === "/dashboard" ||
+    pathname.startsWith("/dashboard/") ||
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/")
+  );
 }
 
 function isApiPath(pathname: string) {
