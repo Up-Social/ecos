@@ -2,6 +2,7 @@
 
 import { Drawer } from "@/components/ui/Drawer";
 import { AgenteForm } from "./AgenteForm";
+import { EntityRelationsTabs } from "@/components/relationships/EntityRelationsTabs";
 import type { Agente } from "@/lib/supabase/types";
 import type { AgenteFormValues } from "@/lib/schemas/agente";
 
@@ -34,13 +35,15 @@ export function AgenteDrawer({
       }
       width="lg"
     >
-      <AgenteForm
-        agente={agente}
-        onSubmit={onSubmit}
-        onDelete={onDelete}
-        onCancel={onClose}
-        submitting={submitting}
-      />
+      <EntityRelationsTabs entityType="agentes" entityId={agente?.id}>
+        <AgenteForm
+          agente={agente}
+          onSubmit={onSubmit}
+          onDelete={onDelete}
+          onCancel={onClose}
+          submitting={submitting}
+        />
+      </EntityRelationsTabs>
     </Drawer>
   );
 }

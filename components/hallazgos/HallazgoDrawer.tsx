@@ -2,6 +2,7 @@
 
 import { Drawer } from "@/components/ui/Drawer";
 import { HallazgoForm } from "./HallazgoForm";
+import { EntityRelationsTabs } from "@/components/relationships/EntityRelationsTabs";
 import type { HallazgoConRelaciones, Innovacion } from "@/lib/supabase/types";
 import type { HallazgoFormValues } from "@/lib/schemas/hallazgo";
 
@@ -36,14 +37,16 @@ export function HallazgoDrawer({
       }
       width="xl"
     >
-      <HallazgoForm
-        hallazgo={hallazgo}
-        innovaciones={innovaciones}
-        onSubmit={onSubmit}
-        onDelete={onDelete}
-        onCancel={onClose}
-        submitting={submitting}
-      />
+      <EntityRelationsTabs entityType="hallazgos" entityId={hallazgo?.id}>
+        <HallazgoForm
+          hallazgo={hallazgo}
+          innovaciones={innovaciones}
+          onSubmit={onSubmit}
+          onDelete={onDelete}
+          onCancel={onClose}
+          submitting={submitting}
+        />
+      </EntityRelationsTabs>
     </Drawer>
   );
 }

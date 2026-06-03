@@ -2,6 +2,7 @@
 
 import { Drawer } from "@/components/ui/Drawer";
 import { RecomendacionForm } from "./RecomendacionForm";
+import { EntityRelationsTabs } from "@/components/relationships/EntityRelationsTabs";
 import type { RecomendacionConRelaciones, Hallazgo } from "@/lib/supabase/types";
 import type { RecomendacionFormValues } from "@/lib/schemas/recomendacion";
 
@@ -36,14 +37,19 @@ export function RecomendacionDrawer({
       }
       width="xl"
     >
-      <RecomendacionForm
-        recomendacion={recomendacion}
-        hallazgos={hallazgos}
-        onSubmit={onSubmit}
-        onDelete={onDelete}
-        onCancel={onClose}
-        submitting={submitting}
-      />
+      <EntityRelationsTabs
+        entityType="recomendaciones"
+        entityId={recomendacion?.id}
+      >
+        <RecomendacionForm
+          recomendacion={recomendacion}
+          hallazgos={hallazgos}
+          onSubmit={onSubmit}
+          onDelete={onDelete}
+          onCancel={onClose}
+          submitting={submitting}
+        />
+      </EntityRelationsTabs>
     </Drawer>
   );
 }

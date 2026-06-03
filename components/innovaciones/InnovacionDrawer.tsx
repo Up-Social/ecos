@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Drawer } from "@/components/ui/Drawer";
 import { InnovacionForm } from "./InnovacionForm";
 import { RelationsSection } from "@/components/common/RelationsSection";
+import { EntityRelationsTabs } from "@/components/relationships/EntityRelationsTabs";
 import {
   getMisionesDerivadasDeInnovacion,
   type DerivedItem,
@@ -69,32 +70,34 @@ export function InnovacionDrawer({
       }
       width="lg"
     >
-      <div className="space-y-6">
-        <InnovacionForm
-          innovacion={innovacion}
-          proyectos={proyectos}
-          retos={retos}
-          onSubmit={onSubmit}
-          onDelete={onDelete}
-          onCancel={onClose}
-          submitting={submitting}
-        />
-
-        {innovacion && (
-          <RelationsSection
-            loading={loadingDerived}
-            emptyMessage="Esta innovación aún no tiene retos vinculados a misiones."
-            groups={[
-              {
-                label: "Misiones",
-                items: misiones,
-                derived: true,
-                tone: "purple",
-              },
-            ]}
+      <EntityRelationsTabs entityType="innovaciones" entityId={innovacion?.id}>
+        <div className="space-y-6">
+          <InnovacionForm
+            innovacion={innovacion}
+            proyectos={proyectos}
+            retos={retos}
+            onSubmit={onSubmit}
+            onDelete={onDelete}
+            onCancel={onClose}
+            submitting={submitting}
           />
-        )}
-      </div>
+
+          {innovacion && (
+            <RelationsSection
+              loading={loadingDerived}
+              emptyMessage="Esta innovación aún no tiene retos vinculados a misiones."
+              groups={[
+                {
+                  label: "Misiones",
+                  items: misiones,
+                  derived: true,
+                  tone: "purple",
+                },
+              ]}
+            />
+          )}
+        </div>
+      </EntityRelationsTabs>
     </Drawer>
   );
 }

@@ -692,6 +692,90 @@ export type Database = {
           },
         ]
       }
+      relationship_types: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          source_entity_type: string | null
+          target_entity_type: string | null
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          source_entity_type?: string | null
+          target_entity_type?: string | null
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          source_entity_type?: string | null
+          target_entity_type?: string | null
+        }
+        Relationships: []
+      }
+      relationships: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          relationship_type_id: string
+          source_entity_id: string
+          source_entity_type: string
+          target_entity_id: string
+          target_entity_type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          relationship_type_id: string
+          source_entity_id: string
+          source_entity_type: string
+          target_entity_id: string
+          target_entity_type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          relationship_type_id?: string
+          source_entity_id?: string
+          source_entity_type?: string
+          target_entity_id?: string
+          target_entity_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relationships_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relationships_relationship_type_id_fkey"
+            columns: ["relationship_type_id"]
+            isOneToOne: false
+            referencedRelation: "relationship_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       retos: {
         Row: {
           created_at: string | null

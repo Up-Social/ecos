@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Drawer } from "@/components/ui/Drawer";
 import { ProyectoForm } from "./ProyectoForm";
 import { RelationsSection } from "@/components/common/RelationsSection";
+import { EntityRelationsTabs } from "@/components/relationships/EntityRelationsTabs";
 import {
   getProyectoRelacionesDerivadas,
   type DerivedItem,
@@ -66,37 +67,39 @@ export function ProyectoDrawer({
       }
       width="lg"
     >
-      <div className="space-y-6">
-        <ProyectoForm
-          proyecto={proyecto}
-          agentes={agentes}
-          onSubmit={onSubmit}
-          onDelete={onDelete}
-          onCancel={onClose}
-          submitting={submitting}
-        />
-
-        {proyecto && (
-          <RelationsSection
-            loading={loadingDerived}
-            emptyMessage="Este proyecto aún no tiene innovaciones con retos asociados."
-            groups={[
-              {
-                label: "Retos",
-                items: retos,
-                derived: true,
-                tone: "blue",
-              },
-              {
-                label: "Misiones",
-                items: misiones,
-                derived: true,
-                tone: "purple",
-              },
-            ]}
+      <EntityRelationsTabs entityType="proyectos" entityId={proyecto?.id}>
+        <div className="space-y-6">
+          <ProyectoForm
+            proyecto={proyecto}
+            agentes={agentes}
+            onSubmit={onSubmit}
+            onDelete={onDelete}
+            onCancel={onClose}
+            submitting={submitting}
           />
-        )}
-      </div>
+
+          {proyecto && (
+            <RelationsSection
+              loading={loadingDerived}
+              emptyMessage="Este proyecto aún no tiene innovaciones con retos asociados."
+              groups={[
+                {
+                  label: "Retos",
+                  items: retos,
+                  derived: true,
+                  tone: "blue",
+                },
+                {
+                  label: "Misiones",
+                  items: misiones,
+                  derived: true,
+                  tone: "purple",
+                },
+              ]}
+            />
+          )}
+        </div>
+      </EntityRelationsTabs>
     </Drawer>
   );
 }

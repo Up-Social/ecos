@@ -20,6 +20,47 @@ import type {
 const supabase = createClient();
 
 // =============================================================================
+// Opciones de entidad por tipo (para el selector de entidad destino)
+// =============================================================================
+
+export interface EntityOption {
+  id: string;
+  label: string;
+}
+
+// Campo legible de cada entidad de dominio (nombre / titulo).
+const LABEL_FIELD: Record<EntityType, string> = {
+  misiones: "nombre",
+  retos: "nombre",
+  agentes: "nombre",
+  proyectos: "nombre",
+  innovaciones: "nombre",
+  hallazgos: "titulo",
+  recomendaciones: "titulo",
+};
+
+/**
+ * Devuelve las filas de una entidad como opciones { id, label } para selects.
+ * El label es `nombre` (o `titulo` en hallazgos/recomendaciones).
+ */
+export async function getEntityOptions(
+  entityType: EntityType,
+): Promise<{ data: EntityOption[]; error: { message: string } | null }> {
+  const labelField = LABEL_FIELD[entityType];
+  const { data, error } = await supabase
+    .from(entityType)
+    .select(`id, ${labelField}`)
+    .order(labelField, { ascending: true })
+    .returns<Record<string, unknown>[]>();
+  if (error) return { data: [], error };
+  const options = (data ?? []).map((row) => ({
+    id: String(row.id),
+    label: String(row[labelField] ?? "(sin nombre)"),
+  }));
+  return { data: options, error: null };
+}
+
+// =============================================================================
 // relationship_types (catálogo)
 // =============================================================================
 
