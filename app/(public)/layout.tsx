@@ -23,13 +23,21 @@ export default function PublicLayout({
             </div>
             <span className="text-sm font-semibold text-slate-900">ECOS</span>
           </Link>
-          <Link
-            href="/admin/login"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900"
-          >
-            <LogIn className="h-4 w-4" />
-            Acceso administración
-          </Link>
+          <nav className="flex items-center gap-5">
+            <Link
+              href="/explorar"
+              className="text-sm font-medium text-slate-600 hover:text-slate-900"
+            >
+              Explorar
+            </Link>
+            <Link
+              href="/admin/login"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900"
+            >
+              <LogIn className="h-4 w-4" />
+              Acceso administración
+            </Link>
+          </nav>
         </div>
       </header>
 
