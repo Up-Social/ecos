@@ -244,3 +244,34 @@ export interface Relationship {
 export interface RelationshipConTipo extends Relationship {
   relationship_type: Pick<RelationshipType, "id" | "code" | "name"> | null;
 }
+
+// -----------------------------------------------------------------------------
+// Conversaciones (Fase 09) — persistencia, sin IA
+// -----------------------------------------------------------------------------
+
+export type MessageRole = "user" | "assistant" | "system";
+
+export interface Conversation {
+  id: string;
+  user_id: string;
+  title: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Message {
+  id: string;
+  conversation_id: string;
+  role: MessageRole;
+  content: string;
+  created_at: string;
+}
+
+export interface ConversationSource {
+  id: string;
+  message_id: string;
+  entity_type: EntityType;
+  entity_id: string;
+  score: number | null;
+  created_at: string;
+}
