@@ -1,18 +1,23 @@
 import Link from "next/link";
-import { LogIn, Sparkles } from "lucide-react";
+import { LogIn, Sparkles, UserRound, LayoutDashboard } from "lucide-react";
+import { getCurrentUserWithRoles } from "@/lib/auth/getCurrentUser";
+import { canAccessPanel } from "@/lib/auth/roles";
 
 // =============================================================================
 // Layout del Portal Público (plano `/`).
-// Independiente del layout de administración. Sin sesión ni datos sensibles.
-// El portal con contenido (Home/Explorador/Entidad) es la Fase 08; aquí solo
-// se establece la estructura.
+// La navegación se adapta a la sesión: sin sesión muestra el acceso a
+// administración; con sesión muestra "Mi cuenta" y, si el usuario tiene rol de
+// panel, un enlace DIRECTO a /dashboard (navegación fluida sin re-login).
 // =============================================================================
 
-export default function PublicLayout({
+export default async function PublicLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const current = await getCurrentUserWithRoles();
+  const isPanel = current ? canAccessPanel(current.roles) : false;
+
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <header className="border-b border-slate-200">
@@ -37,13 +42,35 @@ export default function PublicLayout({
               <Sparkles className="h-4 w-4" />
               Asistente
             </Link>
-            <Link
-              href="/admin/login"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900"
-            >
-              <LogIn className="h-4 w-4" />
-              Acceso administración
-            </Link>
+
+            {current ? (
+              <>
+                {isPanel && (
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    Panel
+                  </Link>
+                )}
+                <Link
+                  href="/perfil"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900"
+                >
+                  <UserRound className="h-4 w-4" />
+                  Mi cuenta
+                </Link>
+              </>
+            ) : (
+              <Link
+                href="/admin/login"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900"
+              >
+                <LogIn className="h-4 w-4" />
+                Acceso administración
+              </Link>
+            )}
           </nav>
         </div>
       </header>

@@ -5,6 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Ban, CheckCircle2 } from "lucide-react";
 import { Field, Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Button } from "@/components/ui/Button";
 import {
   usuarioCreateSchema,
@@ -96,9 +97,9 @@ export function UsuarioForm({
           label="Contraseña"
           required
           error={errors.password?.message}
+          hint="El usuario deberá cambiarla en su primer acceso."
         >
-          <Input
-            type="password"
+          <PasswordInput
             {...register("password")}
             placeholder="Mínimo 8 caracteres"
             autoComplete="new-password"

@@ -13,6 +13,7 @@ export interface MyProfile {
   email: string | null;
   nombre: string | null;
   apellidos: string | null;
+  must_change_password: boolean;
 }
 
 /** Perfil del usuario autenticado, o null si no hay sesión. */
@@ -27,7 +28,7 @@ export async function getMyProfile(): Promise<{
 
   const { data, error } = await supabase
     .from("user_profiles")
-    .select("id, email, nombre, apellidos")
+    .select("id, email, nombre, apellidos, must_change_password")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -58,6 +59,27 @@ export async function updateMyProfile(values: {
 /** Cambia la contraseña del usuario autenticado. */
 export async function updateMyPassword(password: string) {
   return supabase.auth.updateUser({ password });
+}
+
+/**
+ * Marca como completado el cambio de contraseña obligatorio del primer acceso.
+ * Actualiza `must_change_password = false` sobre el propio perfil (permitido por
+ * la política RLS self-update de user_profiles). Se llama tras `updateMyPassword`.
+ */
+export async function clearMustChangePassword(): Promise<{
+  error: { message: string } | null;
+}> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: { message: "No autenticado" } };
+
+  const { error } = await supabase
+    .from("user_profiles")
+    .update({ must_change_password: false })
+    .eq("id", user.id);
+
+  return { error };
 }
 
 /**

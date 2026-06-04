@@ -48,7 +48,9 @@ function isPublicProtected(pathname: string): boolean {
     pathname === "/perfil" ||
     pathname.startsWith("/perfil/") ||
     pathname === "/asistente" ||
-    pathname.startsWith("/asistente/")
+    pathname.startsWith("/asistente/") ||
+    pathname === "/cambiar-password" ||
+    pathname.startsWith("/cambiar-password/")
   );
 }
 
@@ -115,6 +117,33 @@ export async function middleware(request: NextRequest) {
   // ---------------------------------------------------------------------------
   if (isEmbeddingsCron(request, pathname)) {
     return response;
+  }
+
+  // ---------------------------------------------------------------------------
+  // GUARD: cambio de contraseña OBLIGATORIO en el primer acceso.
+  // Si el usuario tiene `must_change_password`, se le retiene en
+  // `/cambiar-password` hasta que la cambie. No aplica a /api/*, al callback de
+  // auth ni a la propia página de cambio (evita bucles).
+  // ---------------------------------------------------------------------------
+  if (
+    user &&
+    !isApiPath(pathname) &&
+    pathname !== "/auth/callback" &&
+    pathname !== "/cambiar-password" &&
+    !pathname.startsWith("/cambiar-password/")
+  ) {
+    const { data: prof } = await supabase
+      .from("user_profiles")
+      .select("must_change_password")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if ((prof as { must_change_password?: boolean } | null)?.must_change_password) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/cambiar-password";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -186,9 +215,11 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.search = "";
     if (pathname === "/admin/login") {
-      url.pathname = hasPanelAccess ? "/dashboard" : "/perfil";
+      // El equipo va al panel; un usuario sin panel, al asistente.
+      url.pathname = hasPanelAccess ? "/dashboard" : "/asistente";
     } else {
-      url.pathname = "/perfil";
+      // Login del portal: destino normal del usuario.
+      url.pathname = "/asistente";
     }
     return NextResponse.redirect(url);
   }

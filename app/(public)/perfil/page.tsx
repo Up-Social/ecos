@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LogOut, Save, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input, Field } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { createClient } from "@/lib/supabase/client";
 import {
   getMyProfile,
@@ -160,8 +161,7 @@ export default function PerfilPage() {
         </h2>
 
         <Field label="Nueva contraseña" required>
-          <Input
-            type="password"
+          <PasswordInput
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -169,8 +169,7 @@ export default function PerfilPage() {
           />
         </Field>
         <Field label="Repite la contraseña" required>
-          <Input
-            type="password"
+          <PasswordInput
             autoComplete="new-password"
             value={password2}
             onChange={(e) => setPassword2(e.target.value)}

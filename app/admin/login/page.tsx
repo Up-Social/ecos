@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input, Field } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { createClient } from "@/lib/supabase/client";
 
 // =============================================================================
@@ -68,18 +70,14 @@ function AdminLoginForm() {
         </Field>
 
         <Field label="Contraseña" required>
-          <div className="relative">
-            <Lock className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-            <Input
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-8"
-              placeholder="••••••••"
-            />
-          </div>
+          <PasswordInput
+            leftIcon={<Lock className="h-4 w-4" />}
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+          />
         </Field>
 
         {error && (
@@ -93,6 +91,15 @@ function AdminLoginForm() {
           {loading ? "Entrando…" : "Entrar"}
         </Button>
       </form>
+
+      <div className="text-center text-sm">
+        <Link
+          href="/recuperar"
+          className="text-brand-600 hover:text-brand-700"
+        >
+          ¿Olvidaste tu contraseña?
+        </Link>
+      </div>
     </div>
   );
 }

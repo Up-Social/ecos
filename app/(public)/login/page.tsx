@@ -6,13 +6,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input, Field } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { createClient } from "@/lib/supabase/client";
 
 // =============================================================================
 // Login PÚBLICO `/login` — usuarios del portal (rol `usuario`).
-// Autentica con email/contraseña y, tras el éxito, va a `/perfil` (o al destino
-// solicitado). El acceso del equipo de administración vive en /admin/login.
-// Los usuarios públicos los crea un administrador (gestión desde admin); no hay
+// Autentica con email/contraseña y, tras el éxito, va a `/asistente` (o al
+// destino solicitado). El acceso del equipo de administración vive en
+// /admin/login. Los usuarios públicos los crea un administrador; no hay
 // auto-registro.
 // =============================================================================
 
@@ -38,7 +39,7 @@ function PublicLoginForm() {
       setLoading(false);
       return;
     }
-    const redirect = searchParams.get("redirect") ?? "/perfil";
+    const redirect = searchParams.get("redirect") ?? "/asistente";
     router.push(redirect);
     router.refresh();
   }
@@ -69,18 +70,14 @@ function PublicLoginForm() {
         </Field>
 
         <Field label="Contraseña" required>
-          <div className="relative">
-            <Lock className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-            <Input
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-8"
-              placeholder="••••••••"
-            />
-          </div>
+          <PasswordInput
+            leftIcon={<Lock className="h-4 w-4" />}
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+          />
         </Field>
 
         {error && (

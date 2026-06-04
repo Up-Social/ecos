@@ -137,6 +137,8 @@ export async function POST(req: Request) {
   const newId = created.user.id;
 
   // 2. user_profile
+  //    Se marca must_change_password: el admin pone una contraseña inicial y el
+  //    usuario debe establecer la suya en el primer acceso (guard del middleware).
   const { error: profileError } = await admin
     .from("user_profiles")
     .upsert(
@@ -146,6 +148,7 @@ export async function POST(req: Request) {
         nombre: body.nombre ?? null,
         apellidos: body.apellidos ?? null,
         disabled: false,
+        must_change_password: true,
       },
       { onConflict: "id" },
     );

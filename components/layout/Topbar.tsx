@@ -1,6 +1,7 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import Link from "next/link";
+import { LogOut, Sparkles } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { MissionSelector } from "./MissionSelector";
@@ -46,6 +47,14 @@ export function Topbar({ email }: Props) {
       </div>
       <div className="flex items-center gap-4">
         <MissionSelector />
+        <div className="h-5 w-px bg-slate-200" aria-hidden="true" />
+        <Link
+          href="/asistente"
+          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          Asistente
+        </Link>
         <div className="h-5 w-px bg-slate-200" aria-hidden="true" />
         <span className="text-xs text-slate-500">{email}</span>
         <button

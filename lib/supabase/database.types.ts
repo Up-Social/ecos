@@ -1198,6 +1198,7 @@ export type Database = {
           disabled: boolean
           email: string | null
           id: string
+          must_change_password: boolean
           nombre: string | null
           updated_at: string | null
         }
@@ -1207,6 +1208,7 @@ export type Database = {
           disabled?: boolean
           email?: string | null
           id: string
+          must_change_password?: boolean
           nombre?: string | null
           updated_at?: string | null
         }
@@ -1216,6 +1218,7 @@ export type Database = {
           disabled?: boolean
           email?: string | null
           id?: string
+          must_change_password?: boolean
           nombre?: string | null
           updated_at?: string | null
         }
