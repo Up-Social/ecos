@@ -1,6 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/Badge";
 import type { Mision } from "@/lib/supabase/types";
 
 export const misionesColumns: ColumnDef<Mision>[] = [
@@ -36,6 +37,17 @@ export const misionesColumns: ColumnDef<Mision>[] = [
         </span>
       ) : (
         <span className="text-slate-400">—</span>
+      ),
+  },
+  {
+    accessorKey: "is_public",
+    header: "Visibilidad",
+    meta: { width: "7rem" },
+    cell: ({ row }) =>
+      row.original.is_public ? (
+        <Badge tone="green">Público</Badge>
+      ) : (
+        <Badge tone="slate">Privado</Badge>
       ),
   },
 ];

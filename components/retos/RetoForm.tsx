@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Trash2 } from "lucide-react";
 import { Field, Input, Textarea } from "@/components/ui/Input";
 import { MultiSelect } from "@/components/ui/MultiSelect";
+import { CheckboxCard } from "@/components/ui/CheckboxCard";
 import { Button } from "@/components/ui/Button";
 import { retoSchema, type RetoFormValues } from "@/lib/schemas/reto";
 import type { RetoConRelaciones, Mision } from "@/lib/supabase/types";
@@ -35,7 +36,7 @@ export function RetoForm({
     formState: { errors },
   } = useForm<RetoFormValues>({
     resolver: zodResolver(retoSchema),
-    defaultValues: { nombre: "", descripcion: "", misiones_ids: [] },
+    defaultValues: { nombre: "", descripcion: "", misiones_ids: [], is_public: false },
   });
 
   useEffect(() => {
@@ -44,9 +45,10 @@ export function RetoForm({
         nombre: reto.nombre,
         descripcion: reto.descripcion ?? "",
         misiones_ids: reto.misiones.map((m) => m.id),
+        is_public: reto.is_public ?? false,
       });
     } else {
-      reset({ nombre: "", descripcion: "", misiones_ids: [] });
+      reset({ nombre: "", descripcion: "", misiones_ids: [], is_public: false });
     }
   }, [reto, reset]);
 
@@ -86,6 +88,12 @@ export function RetoForm({
           )}
         />
       </Field>
+
+      <CheckboxCard
+        label="Visible en el portal público"
+        description="Si se activa, esta ficha aparecerá en el portal abierto, el buscador y el asistente para cualquier visitante."
+        {...register("is_public")}
+      />
 
       <div className="flex items-center justify-between gap-2 pt-2">
         <div>

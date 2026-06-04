@@ -40,6 +40,10 @@ next-env.d.ts
 /docs
 deploy.sh
 
+# Dumps de esquema/datos de Supabase (snapshots; la fuente de verdad son las migraciones)
+supabase/schema_public.sql
+supabase/*.dump.sql
+
 # Claude Code (local, no compartir en git)
 CLAUDE.md
 **/CLAUDE.md

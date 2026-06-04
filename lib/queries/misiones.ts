@@ -21,6 +21,7 @@ function normalize(values: MisionFormValues) {
     nombre: values.nombre,
     descripcion: values.descripcion || null,
     problema: values.problema || null,
+    is_public: values.is_public ?? false,
   };
 }
 

@@ -13,6 +13,7 @@ export const proyectoSchema = z.object({
   grupos_poblacion: z.array(grupoPoblacionEnum).default([]),
   ccaa: z.string().optional().nullable(),
   enlace_1: z.string().optional().nullable().or(z.literal("")),
+  is_public: z.boolean().default(false),
 });
 
 export type ProyectoFormValues = z.input<typeof proyectoSchema>;

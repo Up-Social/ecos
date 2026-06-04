@@ -47,6 +47,7 @@ export interface Mision {
   problema: string | null;
   fuente_informacion: string | null;
   notas_internas: string | null;
+  is_public: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -57,6 +58,7 @@ export interface Reto {
   nombre: string;
   descripcion: string | null;
   fuente_informacion: string | null;
+  is_public: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -77,6 +79,7 @@ export interface Agente {
   web: string | null;
   interconexiones_ids: string | null;
   fuente_informacion: string | null;
+  is_public: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -95,6 +98,7 @@ export interface Proyecto {
   grupos_poblacion: GrupoPoblacion[] | null;
   ccaa: string | null;
   enlace_1: string | null;
+  is_public: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -111,6 +115,7 @@ export interface Innovacion {
   grupos_poblacion: GrupoPoblacion[] | null;
   opciones_escalado: OpcionEscalado[] | null;
   enlace_referencia: string | null;
+  is_public: boolean;
   created_at: string;
   updated_at: string;
 }

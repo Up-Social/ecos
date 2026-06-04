@@ -30,6 +30,7 @@ export const agenteSchema = z.object({
   grupos_poblacion: z.array(grupoPoblacionAgenteEnum).default([]),
   personas_implicadas: z.number().int().nullable().optional(),
   presupuesto: z.number().nullable().optional(),
+  is_public: z.boolean().default(false),
 });
 
 export type AgenteFormValues = z.input<typeof agenteSchema>;

@@ -52,6 +52,7 @@ function normalize(values: RetoFormValues) {
   return {
     nombre: values.nombre,
     descripcion: values.descripcion || null,
+    is_public: values.is_public ?? false,
   };
 }
 

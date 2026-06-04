@@ -13,6 +13,7 @@ import {
   type InnovacionFormValues,
 } from "@/lib/schemas/innovacion";
 import { MultiCheckbox } from "@/components/ui/MultiCheckbox";
+import { CheckboxCard } from "@/components/ui/CheckboxCard";
 import {
   ESTADO_EXPERIMENTACION,
   ESTADO_EXPERIMENTACION_LABELS,
@@ -90,6 +91,7 @@ export function InnovacionForm({
       opciones_escalado: [],
       enlace_referencia: "",
       retos_ids: [],
+      is_public: false,
     },
   });
 
@@ -106,6 +108,7 @@ export function InnovacionForm({
         opciones_escalado: innovacion.opciones_escalado ?? [],
         enlace_referencia: innovacion.enlace_referencia ?? "",
         retos_ids: innovacion.retos.map((r) => r.id),
+        is_public: innovacion.is_public ?? false,
       });
     } else {
       reset({
@@ -119,6 +122,7 @@ export function InnovacionForm({
         opciones_escalado: [],
         enlace_referencia: "",
         retos_ids: [],
+        is_public: false,
       });
     }
   }, [innovacion, reset]);
@@ -259,6 +263,12 @@ export function InnovacionForm({
           placeholder="https://…"
         />
       </Field>
+
+      <CheckboxCard
+        label="Visible en el portal público"
+        description="Si se activa, esta ficha aparecerá en el portal abierto, el buscador y el asistente para cualquier visitante."
+        {...register("is_public")}
+      />
 
       <div className="flex items-center justify-between gap-2 pt-2">
         <div>

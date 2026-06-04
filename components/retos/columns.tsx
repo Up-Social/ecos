@@ -41,4 +41,15 @@ export const retosColumns: ColumnDef<RetoConRelaciones>[] = [
       );
     },
   },
+  {
+    accessorKey: "is_public",
+    header: "Visibilidad",
+    meta: { width: "7rem" },
+    cell: ({ row }) =>
+      row.original.is_public ? (
+        <Badge tone="green">Público</Badge>
+      ) : (
+        <Badge tone="slate">Privado</Badge>
+      ),
+  },
 ];

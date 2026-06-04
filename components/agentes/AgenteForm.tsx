@@ -7,6 +7,7 @@ import { Trash2 } from "lucide-react";
 import { Field, Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { MultiCheckbox } from "@/components/ui/MultiCheckbox";
+import { CheckboxCard } from "@/components/ui/CheckboxCard";
 import { Button } from "@/components/ui/Button";
 import { agenteSchema, type AgenteFormValues } from "@/lib/schemas/agente";
 import {
@@ -68,6 +69,7 @@ export function AgenteForm({
       grupos_poblacion: [],
       personas_implicadas: null,
       presupuesto: null,
+      is_public: false,
     },
   });
 
@@ -84,6 +86,7 @@ export function AgenteForm({
         grupos_poblacion: agente.grupos_poblacion ?? [],
         personas_implicadas: agente.personas_implicadas,
         presupuesto: agente.presupuesto,
+        is_public: agente.is_public ?? false,
       });
     } else {
       reset({
@@ -97,6 +100,7 @@ export function AgenteForm({
         grupos_poblacion: [],
         personas_implicadas: null,
         presupuesto: null,
+        is_public: false,
       });
     }
   }, [agente, reset]);
@@ -206,6 +210,12 @@ export function AgenteForm({
           />
         </Field>
       </div>
+
+      <CheckboxCard
+        label="Visible en el portal público"
+        description="Si se activa, esta ficha aparecerá en el portal abierto, el buscador y el asistente para cualquier visitante."
+        {...register("is_public")}
+      />
 
       <div className="flex items-center justify-between gap-2 pt-2">
         <div>

@@ -91,6 +91,7 @@ function normalize(values: InnovacionFormValues) {
       ? values.opciones_escalado
       : null,
     enlace_referencia: values.enlace_referencia || null,
+    is_public: values.is_public ?? false,
   };
 }
 

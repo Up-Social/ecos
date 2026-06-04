@@ -23,6 +23,7 @@ export const innovacionSchema = z.object({
   grupos_poblacion: z.array(grupoPoblacionInnovacionEnum).default([]),
   opciones_escalado: z.array(opcionEscaladoEnum).default([]),
   enlace_referencia: z.string().optional().nullable().or(z.literal("")),
+  is_public: z.boolean().default(false),
   retos_ids: z.array(z.string().uuid()).default([]),
 });
 

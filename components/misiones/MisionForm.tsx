@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trash2 } from "lucide-react";
 import { Field, Input, Textarea } from "@/components/ui/Input";
+import { CheckboxCard } from "@/components/ui/CheckboxCard";
 import { Button } from "@/components/ui/Button";
 import { misionSchema, type MisionFormValues } from "@/lib/schemas/mision";
 import type { Mision } from "@/lib/supabase/types";
@@ -31,7 +32,7 @@ export function MisionForm({
     formState: { errors },
   } = useForm<MisionFormValues>({
     resolver: zodResolver(misionSchema),
-    defaultValues: { nombre: "", descripcion: "", problema: "" },
+    defaultValues: { nombre: "", descripcion: "", problema: "", is_public: false },
   });
 
   useEffect(() => {
@@ -40,9 +41,10 @@ export function MisionForm({
         nombre: mision.nombre,
         descripcion: mision.descripcion ?? "",
         problema: mision.problema ?? "",
+        is_public: mision.is_public ?? false,
       });
     } else {
-      reset({ nombre: "", descripcion: "", problema: "" });
+      reset({ nombre: "", descripcion: "", problema: "", is_public: false });
     }
   }, [mision, reset]);
 
@@ -69,6 +71,12 @@ export function MisionForm({
           placeholder="Descripción ampliada de la misión"
         />
       </Field>
+
+      <CheckboxCard
+        label="Visible en el portal público"
+        description="Si se activa, esta ficha aparecerá en el portal abierto, el buscador y el asistente para cualquier visitante."
+        {...register("is_public")}
+      />
 
       <div className="flex items-center justify-between gap-2 pt-2">
         <div>

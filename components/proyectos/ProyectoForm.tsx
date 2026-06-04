@@ -7,6 +7,7 @@ import { Trash2 } from "lucide-react";
 import { Field, Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { MultiCheckbox } from "@/components/ui/MultiCheckbox";
+import { CheckboxCard } from "@/components/ui/CheckboxCard";
 import { Button } from "@/components/ui/Button";
 import { proyectoSchema, type ProyectoFormValues } from "@/lib/schemas/proyecto";
 import {
@@ -58,6 +59,7 @@ export function ProyectoForm({
       grupos_poblacion: [],
       ccaa: "",
       enlace_1: "",
+      is_public: false,
     },
   });
 
@@ -72,6 +74,7 @@ export function ProyectoForm({
         grupos_poblacion: proyecto.grupos_poblacion ?? [],
         ccaa: proyecto.ccaa ?? "",
         enlace_1: proyecto.enlace_1 ?? "",
+        is_public: proyecto.is_public ?? false,
       });
     } else {
       reset({
@@ -83,6 +86,7 @@ export function ProyectoForm({
         grupos_poblacion: [],
         ccaa: "",
         enlace_1: "",
+        is_public: false,
       });
     }
   }, [proyecto, reset]);
@@ -168,6 +172,12 @@ export function ProyectoForm({
           )}
         />
       </Field>
+
+      <CheckboxCard
+        label="Visible en el portal público"
+        description="Si se activa, esta ficha aparecerá en el portal abierto, el buscador y el asistente para cualquier visitante."
+        {...register("is_public")}
+      />
 
       <div className="flex items-center justify-between gap-2 pt-2">
         <div>

@@ -6,6 +6,7 @@ export const misionSchema = z.object({
   problema: z.string().optional().nullable(),
   fuente_informacion: z.string().optional().nullable(),
   notas_internas: z.string().optional().nullable(),
+  is_public: z.boolean().default(false),
 });
 
 export type MisionFormValues = z.input<typeof misionSchema>;
