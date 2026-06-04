@@ -29,6 +29,13 @@ const OFFSET_TIPO: Record<string, [number, number]> = {
   proyectos: [11, 0],
 };
 
+// Encuadre de España (península + Baleares) [SO, NE]. De momento todas las
+// entidades son de España, así que el mapa se centra siempre aquí.
+const SPAIN_BOUNDS: [[number, number], [number, number]] = [
+  [-9.5, 35.9],
+  [4.4, 43.9],
+];
+
 function esc(s: string): string {
   return s.replace(
     /[&<>"']/g,
@@ -95,22 +102,28 @@ export function MapaCanvas({ token, marcadores }: Props) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
-  const ajustadoRef = useRef(false);
 
-  // Inicialización del mapa (una sola vez).
+  // Inicialización del mapa (una sola vez). Encuadrado en España.
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
     mapboxgl.accessToken = token;
     const map = new mapboxgl.Map({
       container: containerRef.current,
       style: "mapbox://styles/mapbox/light-v11",
-      center: [-3.7, 40.2], // España peninsular
-      zoom: 4.7,
+      bounds: SPAIN_BOUNDS,
+      fitBoundsOptions: { padding: 24 },
       attributionControl: true,
     });
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
     mapRef.current = map;
+
+    // Responsive: re-dimensionar el mapa cuando cambie el tamaño del contenedor
+    // (cambios de layout, no solo de ventana).
+    const ro = new ResizeObserver(() => map.resize());
+    ro.observe(containerRef.current);
+
     return () => {
+      ro.disconnect();
       map.remove();
       mapRef.current = null;
     };
@@ -143,23 +156,12 @@ export function MapaCanvas({ token, marcadores }: Props) {
         .addTo(map);
       markersRef.current.push(marker);
     }
-
-    // Encuadre inicial a la extensión de los puntos (solo la primera vez).
-    if (!ajustadoRef.current && marcadores.length > 0) {
-      const bounds = new mapboxgl.LngLatBounds();
-      marcadores.forEach((m) => bounds.extend([m.longitud, m.latitud]));
-      const fit = () =>
-        map.fitBounds(bounds, { padding: 60, maxZoom: 9, duration: 0 });
-      if (map.loaded()) fit();
-      else map.once("load", fit);
-      ajustadoRef.current = true;
-    }
   }, [marcadores]);
 
   return (
     <div
       ref={containerRef}
-      className="h-[460px] w-full overflow-hidden rounded-lg border border-slate-200"
+      className="h-[55vh] min-h-[360px] max-h-[640px] w-full overflow-hidden rounded-lg border border-slate-200"
     />
   );
 }

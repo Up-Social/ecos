@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Mail, Lock, LogIn } from "lucide-react";
+import { Mail, Lock, LogIn, Home } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input, Field } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
@@ -104,6 +104,13 @@ function PublicLoginForm() {
           className="block text-slate-400 hover:text-slate-600"
         >
           Acceso administración
+        </Link>
+        <Link
+          href="/"
+          className="inline-flex items-center justify-center gap-1.5 text-slate-400 hover:text-slate-600"
+        >
+          <Home className="h-3.5 w-3.5" />
+          Volver al inicio
         </Link>
       </div>
     </div>
