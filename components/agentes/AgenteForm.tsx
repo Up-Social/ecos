@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/Select";
 import { MultiCheckbox } from "@/components/ui/MultiCheckbox";
 import { CheckboxCard } from "@/components/ui/CheckboxCard";
 import { Button } from "@/components/ui/Button";
+import { CamposGeolocalizacion } from "@/components/mapa/CamposGeolocalizacion";
 import { agenteSchema, type AgenteFormValues } from "@/lib/schemas/agente";
 import {
   TIPO_AGENTE,
@@ -55,6 +56,8 @@ export function AgenteForm({
     handleSubmit,
     control,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<AgenteFormValues>({
     resolver: zodResolver(agenteSchema),
@@ -69,6 +72,8 @@ export function AgenteForm({
       grupos_poblacion: [],
       personas_implicadas: null,
       presupuesto: null,
+      latitud: null,
+      longitud: null,
       is_public: false,
     },
   });
@@ -86,6 +91,8 @@ export function AgenteForm({
         grupos_poblacion: agente.grupos_poblacion ?? [],
         personas_implicadas: agente.personas_implicadas,
         presupuesto: agente.presupuesto,
+        latitud: agente.latitud ?? null,
+        longitud: agente.longitud ?? null,
         is_public: agente.is_public ?? false,
       });
     } else {
@@ -100,6 +107,8 @@ export function AgenteForm({
         grupos_poblacion: [],
         personas_implicadas: null,
         presupuesto: null,
+        latitud: null,
+        longitud: null,
         is_public: false,
       });
     }
@@ -160,6 +169,16 @@ export function AgenteForm({
           placeholder="Municipio donde tiene la sede"
         />
       </Field>
+
+      <CamposGeolocalizacion
+        latitud={(watch("latitud") as number | null) ?? null}
+        longitud={(watch("longitud") as number | null) ?? null}
+        region={(watch("municipio_sede") as string | null) ?? ""}
+        onCoords={(lat, lon) => {
+          setValue("latitud", lat, { shouldValidate: true, shouldDirty: true });
+          setValue("longitud", lon, { shouldValidate: true, shouldDirty: true });
+        }}
+      />
 
       <Field label="Rol en el ecosistema">
         <Controller

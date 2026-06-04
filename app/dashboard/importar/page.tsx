@@ -12,9 +12,11 @@ import {
   X,
   Download,
   AlertTriangle,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { useToast } from "@/components/ui/Toast";
 import { runImport, type ImportResult } from "@/lib/queries/imports";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +42,40 @@ export default function ImportarPage() {
   const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
+  const [geocoding, setGeocoding] = useState(false);
+  const toast = useToast();
+
+  // ---------------------------------------------------------------------------
+  // Geolocalización (coordenadas para el mapa de /explorar): territorios,
+  // agentes y proyectos que tengan una región asignada y aún no tengan coords.
+  // ---------------------------------------------------------------------------
+  async function handleGeocodificar() {
+    setGeocoding(true);
+    try {
+      const res = await fetch("/api/geolocalizar", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error("No se pudo geolocalizar", data.error ?? "Error inesperado");
+        return;
+      }
+      if (data.geocodificados === 0) {
+        toast.info(
+          "Sin pendientes",
+          "No hay entidades con región pendientes de geolocalizar.",
+        );
+        return;
+      }
+      toast.success(
+        "Geolocalización completada",
+        `${data.geocodificados} nuevas · territorios ${data.territorios.geocodificados}, ` +
+          `agentes ${data.agentes.geocodificados}, proyectos ${data.proyectos.geocodificados}`,
+      );
+    } catch (e: any) {
+      toast.error("Error de red", e?.message ?? "Inténtalo de nuevo");
+    } finally {
+      setGeocoding(false);
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Drag & drop handlers
@@ -135,6 +171,35 @@ export default function ImportarPage() {
             Ver historial
           </Link>
         </div>
+      </div>
+
+      {/* ------------------------------------------------------------------- */}
+      {/* Geocodificación de territorios (coordenadas para el mapa público)    */}
+      {/* ------------------------------------------------------------------- */}
+      <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-4">
+        <div className="flex items-start gap-3">
+          <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0 text-brand-600" />
+          <div>
+            <p className="text-sm font-medium text-slate-900">
+              Geolocalizar entidades
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Calcula y guarda las coordenadas (vía Mapbox) de territorios,
+              agentes y proyectos que tengan una región asignada, para situarlos
+              en el mapa de Explorar. Solo procesa los que aún no tienen
+              coordenadas.
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="secondary"
+          onClick={handleGeocodificar}
+          disabled={geocoding}
+          className="flex-shrink-0"
+        >
+          <MapPin className="h-4 w-4" />
+          {geocoding ? "Geolocalizando…" : "Geolocalizar"}
+        </Button>
       </div>
 
       {/* ------------------------------------------------------------------- */}

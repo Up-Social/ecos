@@ -7,6 +7,8 @@ import {
   PUBLIC_ENTITY_CONFIG,
   PUBLIC_ENTITY_TYPES,
 } from "@/lib/queries/public";
+import { getMapaDataset, getMapaEtiquetas } from "@/lib/queries/mapa";
+import { MapaExplorador } from "@/components/mapa/MapaExplorador";
 
 // =============================================================================
 // /explorar — hub del portal: lista las categorías explorables.
@@ -20,7 +22,11 @@ export const metadata: Metadata = {
 
 export default async function ExplorarHubPage() {
   const supabase = await createClient();
-  const counts = await getPublicCounts(supabase);
+  const [counts, mapa, etiquetas] = await Promise.all([
+    getPublicCounts(supabase),
+    getMapaDataset(supabase),
+    getMapaEtiquetas(supabase),
+  ]);
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
@@ -28,6 +34,10 @@ export default async function ExplorarHubPage() {
       <p className="mt-1 text-sm text-slate-500">
         Recorre las categorías del ecosistema.
       </p>
+
+      <div className="mt-8">
+        <MapaExplorador puntos={mapa.data} etiquetas={etiquetas} />
+      </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {PUBLIC_ENTITY_TYPES.map((type) => {

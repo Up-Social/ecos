@@ -79,6 +79,9 @@ export interface Agente {
   web: string | null;
   interconexiones_ids: string | null;
   fuente_informacion: string | null;
+  latitud: number | null;
+  longitud: number | null;
+  geocoded_at: string | null;
   is_public: boolean;
   created_at: string;
   updated_at: string;
@@ -98,6 +101,9 @@ export interface Proyecto {
   grupos_poblacion: GrupoPoblacion[] | null;
   ccaa: string | null;
   enlace_1: string | null;
+  latitud: number | null;
+  longitud: number | null;
+  geocoded_at: string | null;
   is_public: boolean;
   created_at: string;
   updated_at: string;

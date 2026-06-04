@@ -30,6 +30,18 @@ export const agenteSchema = z.object({
   grupos_poblacion: z.array(grupoPoblacionAgenteEnum).default([]),
   personas_implicadas: z.number().int().nullable().optional(),
   presupuesto: z.number().nullable().optional(),
+  latitud: z
+    .number()
+    .min(-90, "Latitud fuera de rango")
+    .max(90, "Latitud fuera de rango")
+    .nullable()
+    .optional(),
+  longitud: z
+    .number()
+    .min(-180, "Longitud fuera de rango")
+    .max(180, "Longitud fuera de rango")
+    .nullable()
+    .optional(),
   is_public: z.boolean().default(false),
 });
 

@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/Select";
 import { MultiCheckbox } from "@/components/ui/MultiCheckbox";
 import { CheckboxCard } from "@/components/ui/CheckboxCard";
 import { Button } from "@/components/ui/Button";
+import { CamposGeolocalizacion } from "@/components/mapa/CamposGeolocalizacion";
 import { proyectoSchema, type ProyectoFormValues } from "@/lib/schemas/proyecto";
 import {
   ESTADO_PROYECTO,
@@ -47,6 +48,8 @@ export function ProyectoForm({
     handleSubmit,
     control,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<ProyectoFormValues>({
     resolver: zodResolver(proyectoSchema),
@@ -59,6 +62,8 @@ export function ProyectoForm({
       grupos_poblacion: [],
       ccaa: "",
       enlace_1: "",
+      latitud: null,
+      longitud: null,
       is_public: false,
     },
   });
@@ -74,6 +79,8 @@ export function ProyectoForm({
         grupos_poblacion: proyecto.grupos_poblacion ?? [],
         ccaa: proyecto.ccaa ?? "",
         enlace_1: proyecto.enlace_1 ?? "",
+        latitud: proyecto.latitud ?? null,
+        longitud: proyecto.longitud ?? null,
         is_public: proyecto.is_public ?? false,
       });
     } else {
@@ -86,6 +93,8 @@ export function ProyectoForm({
         grupos_poblacion: [],
         ccaa: "",
         enlace_1: "",
+        latitud: null,
+        longitud: null,
         is_public: false,
       });
     }
@@ -154,6 +163,16 @@ export function ProyectoForm({
       <Field label="CCAA">
         <Input {...register("ccaa")} placeholder="Comunidad autónoma" />
       </Field>
+
+      <CamposGeolocalizacion
+        latitud={(watch("latitud") as number | null) ?? null}
+        longitud={(watch("longitud") as number | null) ?? null}
+        region={(watch("ccaa") as string | null) ?? ""}
+        onCoords={(lat, lon) => {
+          setValue("latitud", lat, { shouldValidate: true, shouldDirty: true });
+          setValue("longitud", lon, { shouldValidate: true, shouldDirty: true });
+        }}
+      />
 
       <Field label="Enlace">
         <Input {...register("enlace_1")} placeholder="https://…" />

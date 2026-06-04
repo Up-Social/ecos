@@ -1,3 +1,6 @@
+/* Estilos base de Mapbox GL (mapa público del portal /explorar). */
+@import "mapbox-gl/dist/mapbox-gl.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

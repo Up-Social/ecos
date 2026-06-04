@@ -45,6 +45,8 @@ function normalize(values: AgenteFormValues) {
       : null,
     personas_implicadas: values.personas_implicadas ?? null,
     presupuesto: values.presupuesto ?? null,
+    latitud: values.latitud ?? null,
+    longitud: values.longitud ?? null,
     is_public: values.is_public ?? false,
   };
 }

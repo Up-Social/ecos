@@ -21,10 +21,13 @@ export type Database = {
           email: string | null
           external_id: string | null
           fuente_informacion: string | null
+          geocoded_at: string | null
           grupos_poblacion: string[] | null
           id: string
           interconexiones_ids: string | null
           is_public: boolean
+          latitud: number | null
+          longitud: number | null
           municipio_sede: string | null
           nombre: string
           personas_implicadas: number | null
@@ -41,10 +44,13 @@ export type Database = {
           email?: string | null
           external_id?: string | null
           fuente_informacion?: string | null
+          geocoded_at?: string | null
           grupos_poblacion?: string[] | null
           id?: string
           interconexiones_ids?: string | null
           is_public?: boolean
+          latitud?: number | null
+          longitud?: number | null
           municipio_sede?: string | null
           nombre: string
           personas_implicadas?: number | null
@@ -61,10 +67,13 @@ export type Database = {
           email?: string | null
           external_id?: string | null
           fuente_informacion?: string | null
+          geocoded_at?: string | null
           grupos_poblacion?: string[] | null
           id?: string
           interconexiones_ids?: string | null
           is_public?: boolean
+          latitud?: number | null
+          longitud?: number | null
           municipio_sede?: string | null
           nombre?: string
           personas_implicadas?: number | null
@@ -678,9 +687,12 @@ export type Database = {
           fecha_fin: string | null
           fecha_inicio: string | null
           financiador: string | null
+          geocoded_at: string | null
           grupos_poblacion: string[] | null
           id: string
           is_public: boolean
+          latitud: number | null
+          longitud: number | null
           nombre: string
           presupuesto: number | null
           updated_at: string | null
@@ -696,9 +708,12 @@ export type Database = {
           fecha_fin?: string | null
           fecha_inicio?: string | null
           financiador?: string | null
+          geocoded_at?: string | null
           grupos_poblacion?: string[] | null
           id?: string
           is_public?: boolean
+          latitud?: number | null
+          longitud?: number | null
           nombre: string
           presupuesto?: number | null
           updated_at?: string | null
@@ -714,9 +729,12 @@ export type Database = {
           fecha_fin?: string | null
           fecha_inicio?: string | null
           financiador?: string | null
+          geocoded_at?: string | null
           grupos_poblacion?: string[] | null
           id?: string
           is_public?: boolean
+          latitud?: number | null
+          longitud?: number | null
           nombre?: string
           presupuesto?: number | null
           updated_at?: string | null
@@ -1162,21 +1180,30 @@ export type Database = {
       territorios: {
         Row: {
           created_at: string | null
+          geocoded_at: string | null
           id: string
+          latitud: number | null
+          longitud: number | null
           nombre: string
           parent_id: string | null
           tipo: string
         }
         Insert: {
           created_at?: string | null
+          geocoded_at?: string | null
           id?: string
+          latitud?: number | null
+          longitud?: number | null
           nombre: string
           parent_id?: string | null
           tipo: string
         }
         Update: {
           created_at?: string | null
+          geocoded_at?: string | null
           id?: string
+          latitud?: number | null
+          longitud?: number | null
           nombre?: string
           parent_id?: string | null
           tipo?: string
@@ -1472,6 +1499,22 @@ export type Database = {
         Returns: boolean
       }
       is_superadmin: { Args: never; Returns: boolean }
+      mapa_dataset: {
+        Args: never
+        Returns: {
+          agente_ids: string[]
+          entidad_id: string
+          latitud: number
+          longitud: number
+          mision_ids: string[]
+          nombre: string
+          proyecto_ids: string[]
+          reto_ids: string[]
+          tipo: string
+          ubicacion_id: string
+          ubicacion_nombre: string
+        }[]
+      }
       match_embeddings: {
         Args: {
           filter_entity_type?: string

@@ -13,6 +13,18 @@ export const proyectoSchema = z.object({
   grupos_poblacion: z.array(grupoPoblacionEnum).default([]),
   ccaa: z.string().optional().nullable(),
   enlace_1: z.string().optional().nullable().or(z.literal("")),
+  latitud: z
+    .number()
+    .min(-90, "Latitud fuera de rango")
+    .max(90, "Latitud fuera de rango")
+    .nullable()
+    .optional(),
+  longitud: z
+    .number()
+    .min(-180, "Longitud fuera de rango")
+    .max(180, "Longitud fuera de rango")
+    .nullable()
+    .optional(),
   is_public: z.boolean().default(false),
 });
 

@@ -69,6 +69,8 @@ function normalize(values: ProyectoFormValues) {
       : null,
     ccaa: values.ccaa || null,
     enlace_1: values.enlace_1 || null,
+    latitud: values.latitud ?? null,
+    longitud: values.longitud ?? null,
     is_public: values.is_public ?? false,
   };
 }
