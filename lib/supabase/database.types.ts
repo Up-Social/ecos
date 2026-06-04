@@ -1451,6 +1451,26 @@ export type Database = {
       }
     }
     Functions: {
+      _rel_delete: {
+        Args: {
+          p_code: string
+          p_src_id: string
+          p_src_type: string
+          p_tgt_id: string
+          p_tgt_type: string
+        }
+        Returns: undefined
+      }
+      _rel_upsert: {
+        Args: {
+          p_code: string
+          p_src_id: string
+          p_src_type: string
+          p_tgt_id: string
+          p_tgt_type: string
+        }
+        Returns: undefined
+      }
       claim_embedding_jobs: {
         Args: { p_limit?: number }
         Returns: {

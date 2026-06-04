@@ -2,6 +2,7 @@
 
 import { Drawer } from "@/components/ui/Drawer";
 import { RetoForm } from "./RetoForm";
+import { EntityRelationsTabs } from "@/components/relationships/EntityRelationsTabs";
 import type { RetoConRelaciones, Mision } from "@/lib/supabase/types";
 import type { RetoFormValues } from "@/lib/schemas/reto";
 
@@ -36,14 +37,16 @@ export function RetoDrawer({
       }
       width="lg"
     >
-      <RetoForm
-        reto={reto}
-        misiones={misiones}
-        onSubmit={onSubmit}
-        onDelete={onDelete}
-        onCancel={onClose}
-        submitting={submitting}
-      />
+      <EntityRelationsTabs entityType="retos" entityId={reto?.id}>
+        <RetoForm
+          reto={reto}
+          misiones={misiones}
+          onSubmit={onSubmit}
+          onDelete={onDelete}
+          onCancel={onClose}
+          submitting={submitting}
+        />
+      </EntityRelationsTabs>
     </Drawer>
   );
 }

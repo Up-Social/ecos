@@ -2,6 +2,7 @@
 
 import { Drawer } from "@/components/ui/Drawer";
 import { MisionForm } from "./MisionForm";
+import { EntityRelationsTabs } from "@/components/relationships/EntityRelationsTabs";
 import type { Mision } from "@/lib/supabase/types";
 import type { MisionFormValues } from "@/lib/schemas/mision";
 
@@ -34,13 +35,15 @@ export function MisionDrawer({
       }
       width="lg"
     >
-      <MisionForm
-        mision={mision}
-        onSubmit={onSubmit}
-        onDelete={onDelete}
-        onCancel={onClose}
-        submitting={submitting}
-      />
+      <EntityRelationsTabs entityType="misiones" entityId={mision?.id}>
+        <MisionForm
+          mision={mision}
+          onSubmit={onSubmit}
+          onDelete={onDelete}
+          onCancel={onClose}
+          submitting={submitting}
+        />
+      </EntityRelationsTabs>
     </Drawer>
   );
 }
