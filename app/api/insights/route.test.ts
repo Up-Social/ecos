@@ -126,6 +126,7 @@ describe("POST /api/insights", () => {
       stream: true,
       stream_options: { include_usage: true },
       max_completion_tokens: 2000,
+      reasoning_effort: "none",
     });
     expect(ronda1.tools.map((t: { function: { name: string } }) => t.function.name)).toEqual([
       "get_reto_detail",
@@ -175,6 +176,23 @@ describe("POST /api/insights", () => {
       tokens_output: 170,
       generated_by: "usuario-1",
     });
+  });
+
+  it("no pierde el primer insight si viene en la línea del resumen", async () => {
+    const combinada = JSON.stringify({ resumen: "Todo bien", ...INSIGHT_1 });
+    m.create.mockResolvedValueOnce(
+      streamDeChunks([
+        chunkTexto(`${combinada}\n${JSON.stringify(INSIGHT_2)}`),
+        chunkFin("stop"),
+        chunkUso(50, 10),
+      ]),
+    );
+    const eventos = await leerEventosSSE(await POST(peticion({ mision_id: "mision-1" })));
+    expect(eventos).toContainEqual({ evento: "resumen", datos: { text: "Todo bien" } });
+    expect(eventos.filter((e) => e.evento === "insight").map((e) => e.datos)).toEqual([
+      INSIGHT_1,
+      INSIGHT_2,
+    ]);
   });
 
   it("termina en una ronda si el modelo no pide tools", async () => {
