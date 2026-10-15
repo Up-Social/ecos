@@ -91,7 +91,7 @@ export function MapaExplorador({ puntos, etiquetas }: Props) {
     return (
       <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
         El mapa no está disponible: falta configurar
-        <code className="mx-1 rounded bg-amber-100 px-1">
+        <code className="mx-1 rounded-sm bg-amber-100 px-1">
           NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
         </code>
         en el entorno.
@@ -103,7 +103,7 @@ export function MapaExplorador({ puntos, etiquetas }: Props) {
   if (puntos.length === 0) {
     return (
       <div className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-500">
-        <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0 text-slate-400" />
+        <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
         <p>
           Todavía no hay entidades geolocalizadas en el mapa. Un gestor puede
           generarlas desde <strong>Importar → Geocodificar territorios</strong>.

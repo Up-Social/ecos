@@ -78,7 +78,7 @@ El repo incluye archivos de configuración para [Claude Code](https://claude.com
 
 ## Stack
 
-- Node.js 24 LTS · Next.js 16 (webpack) · React 19 · TypeScript 5.9 · Tailwind 3.4
+- Node.js 24 LTS · Next.js 16 (webpack) · React 19 · TypeScript 5.9 · Tailwind 4
 - Supabase (PostgreSQL 17, Auth, Storage, Edge Functions Deno)
 - react-hook-form · Zod · @tanstack/react-table · recharts · lucide-react
 - openai (`gpt-6-luna` para chat e insights; `text-embedding-3-small` para embeddings)

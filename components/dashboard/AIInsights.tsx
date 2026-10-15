@@ -231,7 +231,7 @@ export function AIInsights() {
       : "Generar";
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-gradient-to-br from-white to-brand-50/30 p-5">
+    <div className="rounded-lg border border-slate-200 bg-linear-to-br from-white to-brand-50/30 p-5">
       <header className="mb-4 flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-brand-100">
@@ -416,7 +416,7 @@ function InsightCard({
           </p>
           <p className="mt-0.5 text-xs text-slate-600">{insight.descripcion}</p>
           {insight.evidencia && (
-            <p className="mt-1 inline-block rounded bg-slate-50 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">
+            <p className="mt-1 inline-block rounded-sm bg-slate-50 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">
               {insight.evidencia}
             </p>
           )}

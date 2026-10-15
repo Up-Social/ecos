@@ -116,7 +116,7 @@ function ConfirmDialog({
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-title"
-      className="fixed inset-0 z-[90] flex items-center justify-center"
+      className="fixed inset-0 z-90 flex items-center justify-center"
     >
       <div
         className="absolute inset-0 bg-slate-900/50"

@@ -202,9 +202,9 @@ function GroupSwitcher({
             aria-selected={active}
             onClick={() => onChange(o.value)}
             className={cn(
-              "rounded px-2 py-1 text-[11px] font-medium transition-colors",
+              "rounded-sm px-2 py-1 text-[11px] font-medium transition-colors",
               active
-                ? "bg-white text-slate-900 shadow-sm"
+                ? "bg-white text-slate-900 shadow-xs"
                 : "text-slate-500 hover:text-slate-700",
             )}
           >
@@ -244,14 +244,14 @@ function RecRow({ rec }: { rec: RecomendacionLite }) {
             </p>
             <div className="mt-1.5 flex flex-wrap items-center gap-1">
               {rec.alcance && (
-                <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
+                <span className="inline-flex items-center rounded-sm bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
                   {alcanceLabel[rec.alcance]}
                 </span>
               )}
               {rec.ambito?.map((a) => (
                 <span
                   key={a}
-                  className="inline-flex items-center rounded bg-brand-50 px-1.5 py-0.5 text-[10px] font-medium text-brand-700"
+                  className="inline-flex items-center rounded-sm bg-brand-50 px-1.5 py-0.5 text-[10px] font-medium text-brand-700"
                 >
                   {a}
                 </span>

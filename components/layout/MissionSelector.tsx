@@ -34,7 +34,7 @@ export function MissionSelector() {
         onClick={() => setOpen((o) => !o)}
         className={cn(
           "flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
+          "focus:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500",
           selectedMisionId
             ? "border-brand-300 bg-brand-50 text-brand-700"
             : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",

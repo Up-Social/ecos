@@ -23,7 +23,7 @@ export const usuariosColumns: ColumnDef<Usuario>[] = [
       const apellidos = row.original.apellidos ?? "";
       const full = `${nombre} ${apellidos}`.trim();
       return (
-        <span className="block whitespace-normal break-words font-medium text-slate-900">
+        <span className="block whitespace-normal wrap-break-word font-medium text-slate-900">
           {full || <span className="text-slate-400">—</span>}
         </span>
       );

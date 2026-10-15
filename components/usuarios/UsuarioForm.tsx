@@ -128,7 +128,7 @@ export function UsuarioForm({
                   >
                     <input
                       type="checkbox"
-                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                      className="mt-0.5 h-4 w-4 rounded-sm border-slate-300 text-brand-600 focus:ring-brand-500"
                       checked={selected.has(key)}
                       onChange={(e) => toggle(key, e.target.checked)}
                     />

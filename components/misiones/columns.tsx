@@ -10,7 +10,7 @@ export const misionesColumns: ColumnDef<Mision>[] = [
     header: "Nombre",
     meta: { width: "40%" },
     cell: ({ row }) => (
-      <span className="block whitespace-normal break-words font-medium text-slate-900">
+      <span className="block whitespace-normal wrap-break-word font-medium text-slate-900">
         {row.original.nombre}
       </span>
     ),

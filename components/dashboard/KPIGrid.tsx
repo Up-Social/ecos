@@ -151,7 +151,7 @@ function KPICard({
   return (
     <Link
       href={config.href}
-      className="group relative flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 transition-all hover:border-slate-300 hover:shadow-sm"
+      className="group relative flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 transition-all hover:border-slate-300 hover:shadow-xs"
     >
       <div className="flex items-start justify-between">
         <div

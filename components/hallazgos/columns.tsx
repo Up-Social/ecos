@@ -29,7 +29,7 @@ export const hallazgosColumns: ColumnDef<HallazgoConRelaciones>[] = [
     meta: { width: "45%" },
     cell: ({ row }) => (
       <div>
-        <div className="whitespace-normal break-words font-medium text-slate-900">
+        <div className="whitespace-normal wrap-break-word font-medium text-slate-900">
           {row.original.titulo}
         </div>
         <div className="line-clamp-2 text-xs text-slate-500">

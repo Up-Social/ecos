@@ -147,7 +147,7 @@ function FilterPill<T>({ filter, value, onChange }: PillProps<T>) {
             placeholder="Buscar…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border-b border-slate-100 px-3 py-2 text-xs focus:outline-none"
+            className="w-full border-b border-slate-100 px-3 py-2 text-xs focus:outline-hidden"
           />
           <ul className="max-h-60 overflow-auto py-1">
             {filtered.length === 0 && (

@@ -102,7 +102,7 @@ function ToastViewport({
     <div
       aria-live="polite"
       aria-atomic="true"
-      className="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-full max-w-sm flex-col gap-2"
+      className="pointer-events-none fixed bottom-4 right-4 z-100 flex w-full max-w-sm flex-col gap-2"
     >
       {toasts.map((t) => (
         <ToastItem key={t.id} toast={t} onClose={() => onClose(t.id)} />
@@ -175,7 +175,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
       <button
         type="button"
         onClick={onClose}
-        className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+        className="rounded-sm p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
         aria-label="Cerrar notificación"
       >
         <X className="h-4 w-4" />
