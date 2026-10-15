@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clasificarLineaNdjson, separarLineasNdjson } from "./ndjson";
+import { interpretarLineaNdjson, separarLineasNdjson } from "./ndjson";
 
 describe("separarLineasNdjson", () => {
   it("devuelve las líneas completas y guarda la incompleta como resto", () => {
@@ -17,19 +17,17 @@ describe("separarLineasNdjson", () => {
     const primero = separarLineasNdjson('{"resumen":"Misión ');
     const segundo = separarLineasNdjson(primero.resto + 'activa"}\n');
     expect(segundo.lineas).toEqual(['{"resumen":"Misión activa"}']);
-    expect(clasificarLineaNdjson(segundo.lineas[0])).toEqual({
-      tipo: "resumen",
-      texto: "Misión activa",
-    });
+    expect(interpretarLineaNdjson(segundo.lineas[0])).toEqual([
+      { tipo: "resumen", texto: "Misión activa" },
+    ]);
   });
 });
 
-describe("clasificarLineaNdjson", () => {
+describe("interpretarLineaNdjson", () => {
   it("reconoce el resumen", () => {
-    expect(clasificarLineaNdjson('  {"resumen":"Buen ritmo"}  ')).toEqual({
-      tipo: "resumen",
-      texto: "Buen ritmo",
-    });
+    expect(interpretarLineaNdjson('  {"resumen":"Buen ritmo"}  ')).toEqual([
+      { tipo: "resumen", texto: "Buen ritmo" },
+    ]);
   });
 
   it("reconoce un insight", () => {
@@ -40,13 +38,29 @@ describe("clasificarLineaNdjson", () => {
       prioridad: "alta",
       evidencia: "0 innovaciones",
     };
-    expect(clasificarLineaNdjson(JSON.stringify(insight))).toEqual({ tipo: "insight", insight });
+    expect(interpretarLineaNdjson(JSON.stringify(insight))).toEqual([{ tipo: "insight", insight }]);
   });
 
-  it.each(["", "   ", "{incompleto", "```json", "[]", "42", '{"otro":"campo"}'])(
+  it("separa resumen e insight cuando el modelo los junta en un objeto", () => {
+    // Caso real observado con gpt-6-luna.
+    const insight = {
+      tipo: "vacio",
+      titulo: "Movilidad sin innovaciones",
+      descripcion: "El reto de Movilidad no tiene innovaciones.",
+      prioridad: "alta",
+      evidencia: "0 innovaciones",
+    };
+    const linea = JSON.stringify({ resumen: "Concentración en Vivienda", ...insight });
+    expect(interpretarLineaNdjson(linea)).toEqual([
+      { tipo: "resumen", texto: "Concentración en Vivienda" },
+      { tipo: "insight", insight },
+    ]);
+  });
+
+  it.each(["", "   ", "{incompleto", "```json", "[]", "42", "null", '{"otro":"campo"}'])(
     "ignora %j",
     (linea) => {
-      expect(clasificarLineaNdjson(linea)).toBeNull();
+      expect(interpretarLineaNdjson(linea)).toEqual([]);
     },
   );
 });

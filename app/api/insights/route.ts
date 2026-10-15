@@ -13,7 +13,7 @@ import {
   parsearArgumentosTool,
   type ToolCallAcumulada,
 } from "@/lib/ia/openai";
-import { clasificarLineaNdjson, separarLineasNdjson, type Insight } from "@/lib/ia/ndjson";
+import { interpretarLineaNdjson, separarLineasNdjson, type Insight } from "@/lib/ia/ndjson";
 
 export const runtime = "nodejs";
 
@@ -204,13 +204,14 @@ export async function POST(req: Request) {
 
       // Líneas incompletas o inválidas se ignoran.
       const emitNdjsonLine = (line: string) => {
-        const linea = clasificarLineaNdjson(line);
-        if (linea?.tipo === "resumen") {
-          collectedResumen = linea.texto;
-          send("resumen", { text: linea.texto });
-        } else if (linea?.tipo === "insight") {
-          collectedInsights.push(linea.insight);
-          send("insight", linea.insight);
+        for (const linea of interpretarLineaNdjson(line)) {
+          if (linea.tipo === "resumen") {
+            collectedResumen = linea.texto;
+            send("resumen", { text: linea.texto });
+          } else {
+            collectedInsights.push(linea.insight);
+            send("insight", linea.insight);
+          }
         }
       };
 
@@ -315,6 +316,8 @@ export async function POST(req: Request) {
           const completion = await client.chat.completions.create({
             model: MODELO_CHAT,
             max_completion_tokens: 2000,
+            // gpt-6-luna solo admite tools en Chat Completions sin razonamiento.
+            reasoning_effort: "none",
             stream: true,
             stream_options: { include_usage: true },
             tools: TOOLS,

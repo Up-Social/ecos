@@ -28,22 +28,29 @@ export function separarLineasNdjson(buffer: string): { lineas: string[]; resto: 
   return { lineas, resto };
 }
 
-/** Interpreta una línea; null si está vacía, incompleta o no es resumen/insight. */
-export function clasificarLineaNdjson(linea: string): LineaNdjson | null {
+/**
+ * Interpreta una línea. Devuelve [] si está vacía, incompleta o no es
+ * resumen/insight. El modelo a veces junta el resumen y el primer insight en un
+ * mismo objeto ({"resumen":…, "tipo":…}): en ese caso devuelve los dos.
+ */
+export function interpretarLineaNdjson(linea: string): LineaNdjson[] {
   const recortada = linea.trim();
-  if (!recortada) return null;
+  if (!recortada) return [];
+  let obj: unknown;
   try {
-    const obj: unknown = JSON.parse(recortada);
-    if (!obj || typeof obj !== "object") return null;
-    const registro = obj as Record<string, unknown>;
-    if (typeof registro.resumen === "string") {
-      return { tipo: "resumen", texto: registro.resumen };
-    }
-    if (typeof registro.tipo === "string") {
-      return { tipo: "insight", insight: registro as unknown as Insight };
-    }
-    return null;
+    obj = JSON.parse(recortada);
   } catch {
-    return null;
+    return [];
   }
+  if (!obj || typeof obj !== "object" || Array.isArray(obj)) return [];
+
+  const { resumen, ...resto } = obj as Record<string, unknown>;
+  const resultado: LineaNdjson[] = [];
+  if (typeof resumen === "string") {
+    resultado.push({ tipo: "resumen", texto: resumen });
+  }
+  if (typeof resto.tipo === "string") {
+    resultado.push({ tipo: "insight", insight: resto as unknown as Insight });
+  }
+  return resultado;
 }
