@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { PANEL_ROLES, type RoleKey } from "@/lib/auth/roles";
 
@@ -81,6 +81,21 @@ function isAdminPlane(pathname: string): boolean {
   );
 }
 
+/** Cabeceras anti-caché que @supabase/ssr pide al escribir cookies de sesión. */
+const CABECERAS_SESION = ["cache-control", "expires", "pragma"];
+
+/** Traslada a una respuesta de corte (redirección o JSON de error) las cookies y
+ *  cabeceras anti-caché del refresco de sesión, para no perder un token renovado
+ *  ni dejar que un CDN cachee la respuesta. */
+function conSesion(destino: NextResponse, origen: NextResponse): NextResponse {
+  origen.cookies.getAll().forEach((cookie) => destino.cookies.set(cookie));
+  for (const nombre of CABECERAS_SESION) {
+    const valor = origen.headers.get(nombre);
+    if (valor) destino.headers.set(nombre, valor);
+  }
+  return destino;
+}
+
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -92,15 +107,18 @@ export async function proxy(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(
-          cookiesToSet: { name: string; value: string; options?: CookieOptions }[],
-        ) {
+        setAll(cookiesToSet, headers) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           );
           response = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options),
+          );
+          // Desde @supabase/ssr 0.7: evita que un CDN cachee una respuesta con
+          // la cookie de sesión de otro usuario.
+          Object.entries(headers).forEach(([nombre, valor]) =>
+            response.headers.set(nombre, valor),
           );
         },
       },
@@ -144,7 +162,7 @@ export async function proxy(request: NextRequest) {
       const url = request.nextUrl.clone();
       url.pathname = "/cambiar-password";
       url.search = "";
-      return NextResponse.redirect(url);
+      return conSesion(NextResponse.redirect(url), response);
     }
   }
 
@@ -155,12 +173,15 @@ export async function proxy(request: NextRequest) {
     // 1. Sin sesión
     if (!user) {
       if (isApiPath(pathname)) {
-        return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+        return conSesion(
+          NextResponse.json({ error: "No autenticado" }, { status: 401 }),
+          response,
+        );
       }
       const url = request.nextUrl.clone();
       url.pathname = "/admin/login";
       url.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(url);
+      return conSesion(NextResponse.redirect(url), response);
     }
 
     // 2. Con sesión: comprobar PANEL_ROLES
@@ -176,15 +197,15 @@ export async function proxy(request: NextRequest) {
 
     if (!hasPanelAccess) {
       if (isApiPath(pathname)) {
-        return NextResponse.json(
-          { error: "Permisos insuficientes" },
-          { status: 403 },
+        return conSesion(
+          NextResponse.json({ error: "Permisos insuficientes" }, { status: 403 }),
+          response,
         );
       }
       const url = request.nextUrl.clone();
       url.pathname = "/admin/login";
       url.searchParams.set("reason", "no_panel_access");
-      return NextResponse.redirect(url);
+      return conSesion(NextResponse.redirect(url), response);
     }
 
     return response;
@@ -199,7 +220,7 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(url);
+    return conSesion(NextResponse.redirect(url), response);
   }
 
   // Usuario autenticado que visita una pantalla de login → destino según rol
@@ -223,7 +244,7 @@ export async function proxy(request: NextRequest) {
       // Login del portal: destino normal del usuario.
       url.pathname = "/asistente";
     }
-    return NextResponse.redirect(url);
+    return conSesion(NextResponse.redirect(url), response);
   }
 
   // Resto de rutas públicas (incluida `/`): acceso libre.
