@@ -24,7 +24,7 @@ export const runtime = "nodejs";
 // Devuelve por SSE: sources, related, trace y la respuesta en deltas; persiste en
 // messages + conversation_sources (Fase 09).
 //
-// Acceso: exige sesión (el middleware deja pasar; aquí se valida). Panel ve todo;
+// Acceso: exige sesión (el proxy deja pasar; aquí se valida). Panel ve todo;
 // usuario/portal ve solo contenido público (only_public = !panel).
 // =============================================================================
 

@@ -3,7 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { PANEL_ROLES, type RoleKey } from "@/lib/auth/roles";
 
 // =============================================================================
-// Middleware con DOS PLANOS independientes (Fase 06):
+// Proxy (antes `middleware.ts`; renombrado en Next 16) con DOS PLANOS
+// independientes (Fase 06):
 //
 //   · Plano ADMINISTRACIÓN → /admin/*, /dashboard/*, /api/*
 //       Requiere sesión + PANEL_ROLES (superadmin/gestor).
@@ -13,9 +14,10 @@ import { PANEL_ROLES, type RoleKey } from "@/lib/auth/roles";
 //   · Plano PÚBLICO → /, /login, /admin/login, /auth/callback
 //       Acceso libre (sin sesión). Los usuarios públicos llegan en la Fase 07.
 //
-// Next.js permite un único archivo de middleware: la "independencia" se modela
+// Next.js permite un único archivo de proxy: la "independencia" se modela
 // como ramas separadas (handleAdminPlane / plano público) sobre el mismo
-// refresco de sesión de Supabase.
+// refresco de sesión de Supabase. En Next 16 el proxy corre siempre en el
+// runtime de Node.js (ya no en Edge).
 // =============================================================================
 
 // Rutas públicas (sin requerir sesión).
@@ -79,7 +81,7 @@ function isAdminPlane(pathname: string): boolean {
   );
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(

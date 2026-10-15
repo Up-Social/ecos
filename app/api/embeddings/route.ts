@@ -25,7 +25,7 @@ export const runtime = "nodejs";
 // .env.local). Decisión cerrada (regla 16): OpenAI `text-embedding-3-small` /
 // 1536, vía OPENAI_API_KEY. Overridable por EMBEDDINGS_* sin tocar código.
 //
-// Auth: la ruta está protegida por el middleware (`/api/*` → PANEL_ROLES) y se
+// Auth: la ruta está protegida por el proxy (`/api/*` → PANEL_ROLES) y se
 // re-comprueba aquí (defensa en profundidad). El disparo por cron es Fase 11.
 //
 // Escritura con cliente service-role (sortea RLS), como el resto de operaciones
@@ -264,7 +264,7 @@ async function runBatch(limit: number) {
 // -----------------------------------------------------------------------------
 
 export async function POST(req: Request) {
-  // Defensa en profundidad (el middleware ya exige PANEL_ROLES en /api/*).
+  // Defensa en profundidad (el proxy ya exige PANEL_ROLES en /api/*).
   const current = await getCurrentUserWithRoles();
   if (!current) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   if (!canAccessPanel(current.roles)) {
@@ -285,7 +285,7 @@ export async function POST(req: Request) {
 
 // -----------------------------------------------------------------------------
 // GET → disparo automático por CRON (Vercel Cron). Autenticado con CRON_SECRET.
-// El middleware deja pasar esta petición solo si el secreto coincide; aquí se
+// El proxy deja pasar esta petición solo si el secreto coincide; aquí se
 // revalida (defensa en profundidad). Sin CRON_SECRET configurado → 401.
 // -----------------------------------------------------------------------------
 

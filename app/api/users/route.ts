@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 // GET  → lista de usuarios (user_profiles + roles agregados)
 // POST → crea un usuario (auth.admin.createUser + user_profile + user_roles)
 //
-// Solo accesible para superadmin (además del check de panel del middleware).
+// Solo accesible para superadmin (además del check de panel del proxy).
 // =============================================================================
 
 interface UserRow {
@@ -138,7 +138,7 @@ export async function POST(req: Request) {
 
   // 2. user_profile
   //    Se marca must_change_password: el admin pone una contraseña inicial y el
-  //    usuario debe establecer la suya en el primer acceso (guard del middleware).
+  //    usuario debe establecer la suya en el primer acceso (guard del proxy).
   const { error: profileError } = await admin
     .from("user_profiles")
     .upsert(

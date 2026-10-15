@@ -16,7 +16,7 @@ import {
 // =============================================================================
 // Perfil del usuario autenticado `/perfil` (plano público, requiere sesión).
 // Permite editar nombre/apellidos, cambiar la contraseña y cerrar sesión.
-// La protección de sesión la aplica el middleware (plano público protegido).
+// La protección de sesión la aplica el proxy (plano público protegido).
 // =============================================================================
 
 export default function PerfilPage() {

@@ -2,7 +2,7 @@
 
 Panel de administración para gestionar un ecosistema de cambio social: misiones, retos, agentes, proyectos, innovaciones, hallazgos, recomendaciones y territorios.
 
-Construido con **Next.js 15** (App Router) + **Supabase** (PostgreSQL, Auth, Storage, Edge Functions). Frontend desplegado en **Vercel**.
+Construido con **Next.js 16** (App Router) + **Supabase** (PostgreSQL, Auth, Storage, Edge Functions). Frontend desplegado en **Vercel**.
 
 ---
 
@@ -38,7 +38,7 @@ App disponible en http://localhost:3000.
 ```bash
 npm run dev          # Desarrollo
 npm run build        # Build de producción
-npm run lint         # Lint con eslint de Next
+npm run lint         # ESLint (config plana eslint.config.mjs)
 npm run types:gen    # Regenera lib/supabase/database.types.ts (necesita SUPABASE_PROJECT_REF)
 ./deploy.sh          # Aplica migrations + despliega Edge Functions al Supabase remoto
 ```
@@ -49,7 +49,7 @@ npm run types:gen    # Regenera lib/supabase/database.types.ts (necesita SUPABAS
 - `components/` — Componentes UI agrupados por entidad. Primitivos custom en `components/ui/`.
 - `lib/` — Clientes Supabase, queries, schemas Zod, hooks, contexts, helpers de auth.
 - `supabase/` — Migrations SQL, Edge Functions (Deno) y `config.toml`.
-- `middleware.ts` — Autenticación + autorización por roles (`superadmin`, `gestor`, `usuario`).
+- `proxy.ts` — Autenticación + autorización por roles (`superadmin`, `gestor`, `usuario`).
 
 ## Despliegue
 
@@ -78,7 +78,7 @@ El repo incluye archivos de configuración para [Claude Code](https://claude.com
 
 ## Stack
 
-- Node.js 24 LTS · Next.js 15 · React 19 · TypeScript 5.9 · Tailwind 3.4
+- Node.js 24 LTS · Next.js 16 (webpack) · React 19 · TypeScript 5.9 · Tailwind 3.4
 - Supabase (PostgreSQL 17, Auth, Storage, Edge Functions Deno)
 - react-hook-form · Zod · @tanstack/react-table · recharts · lucide-react
 - openai (`gpt-6-luna` para chat e insights; `text-embedding-3-small` para embeddings)

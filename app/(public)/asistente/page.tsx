@@ -4,7 +4,7 @@ import { AsistenteClient } from "@/components/asistente/AsistenteClient";
 
 // =============================================================================
 // Asistente GraphRAG `/asistente` (plano público, requiere sesión).
-// La protección la aplica el middleware; aquí, doble verificación (defensa en
+// La protección la aplica el proxy; aquí, doble verificación (defensa en
 // profundidad), como en el layout del panel.
 // =============================================================================
 

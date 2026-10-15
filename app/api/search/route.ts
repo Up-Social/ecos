@@ -14,7 +14,7 @@ export const runtime = "nodejs";
 // Combina filtros SQL (entity_type, is_public) + vector search (coseno, HNSW).
 // GET  ?q=...&type=...&limit=...   ·   POST { q, entityType, limit }
 //
-// Acceso (control en el handler; el middleware deja pasar anónimos):
+// Acceso (control en el handler; el proxy deja pasar anónimos):
 //   - Panel (PANEL_ROLES) → busca en TODO.
 //   - Anónimo / no-panel   → solo entidades is_public (only_public=true).
 //

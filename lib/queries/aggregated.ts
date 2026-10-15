@@ -42,7 +42,7 @@ export async function getHallazgosPorReto(
     new Set((rows as any[]).map((r) => r.hallazgo_id as string)),
   );
 
-  let extraMap = new Map<
+  const extraMap = new Map<
     string,
     { validado: boolean; innovacion_nombre: string | null }
   >();

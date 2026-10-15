@@ -14,7 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 // Reubica el login del panel (antes en `/login`). Autentica con email/password
 // y, tras el éxito, va al destino solicitado o a /dashboard.
 // Vive FUERA del route group guardado `(panel)`, por lo que es accesible sin
-// sesión (el middleware lo trata como público).
+// sesión (el proxy lo trata como público).
 // =============================================================================
 
 function AdminLoginForm() {
