@@ -22,5 +22,7 @@ export default defineConfig([
     "next-env.d.ts",
     // Edge Functions de Supabase: runtime Deno, fuera del proyecto Next.
     "supabase/functions/**",
+    // Worktrees locales de Claude Code (copias del repo con su node_modules).
+    ".claude/**",
   ]),
 ]);
