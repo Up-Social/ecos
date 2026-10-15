@@ -5,7 +5,7 @@ export const retoSchema = z.object({
   descripcion: z.string().optional().nullable(),
   fuente_informacion: z.string().optional().nullable(),
   is_public: z.boolean().default(false),
-  misiones_ids: z.array(z.uuid()).default([]),
+  misiones_ids: z.array(z.uuid("Misión no válida")).default([]),
 });
 
 export type RetoFormValues = z.input<typeof retoSchema>;

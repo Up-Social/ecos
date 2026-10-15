@@ -16,7 +16,7 @@ export const recomendacionSchema = z.object({
   destinatarios: z.string().optional().nullable(),
   alcance: alcanceEnum.nullable().optional(),
   estado: estadoRecomendacionEnum.nullable().optional(),
-  hallazgos_ids: z.array(z.uuid()).default([]),
+  hallazgos_ids: z.array(z.uuid("Hallazgo no válido")).default([]),
 });
 
 export type RecomendacionFormValues = z.input<typeof recomendacionSchema>;

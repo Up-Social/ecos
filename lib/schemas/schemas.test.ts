@@ -33,6 +33,11 @@ describe("mensajes de validación", () => {
     expect(mensajes(r).message).toMatch(/se esperaba texto/);
   });
 
+  it("los identificadores no válidos tienen mensaje propio", () => {
+    const r = chatSchema.safeParse({ message: "hola", conversationId: "x" });
+    expect(mensajes(r)).toEqual({ conversationId: "Conversación no válida" });
+  });
+
   it("el mensaje de uuid llega al campo", () => {
     const r = usuarioCreateSchema.safeParse({
       email: "a@b.org",

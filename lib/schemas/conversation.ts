@@ -16,7 +16,7 @@ export const conversationRenameSchema = z.object({
 export const messageRoleEnum = z.enum(["user", "assistant", "system"]);
 
 export const messageCreateSchema = z.object({
-  conversation_id: z.uuid(),
+  conversation_id: z.uuid("Conversación no válida"),
   role: messageRoleEnum,
   content: z.string().min(1, "El mensaje no puede estar vacío"),
 });

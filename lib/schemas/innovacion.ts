@@ -24,7 +24,7 @@ export const innovacionSchema = z.object({
   opciones_escalado: z.array(opcionEscaladoEnum).default([]),
   enlace_referencia: z.string().optional().nullable().or(z.literal("")),
   is_public: z.boolean().default(false),
-  retos_ids: z.array(z.uuid()).default([]),
+  retos_ids: z.array(z.uuid("Reto no válido")).default([]),
 });
 
 export type InnovacionFormValues = z.input<typeof innovacionSchema>;

@@ -22,7 +22,7 @@ export const usuarioCreateSchema = z.object({
 
 // Editar: email/password no se editan aquí
 export const usuarioUpdateSchema = z.object({
-  email: z.email().optional(),
+  email: z.email("Email no válido").optional(),
   password: z.string().optional().or(z.literal("")),
   ...baseFields,
 });

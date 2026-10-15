@@ -11,7 +11,7 @@ export const chatSchema = z.object({
     .min(1, "Escribe un mensaje")
     .max(2000, "El mensaje es demasiado largo"),
   // Conversación existente; si falta, se crea una nueva.
-  conversationId: z.uuid().optional(),
+  conversationId: z.uuid("Conversación no válida").optional(),
 });
 
 export type ChatInput = z.infer<typeof chatSchema>;
