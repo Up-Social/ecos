@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
 import type {
-  Tool,
-  ToolUseBlock,
-  MessageParam,
-  TextBlockParam,
-  ToolResultBlockParam,
-} from "@anthropic-ai/sdk/resources/messages";
+  ChatCompletionFunctionTool,
+  ChatCompletionMessageParam,
+} from "openai/resources/chat/completions";
 import { createClient } from "@/lib/supabase/server";
+import {
+  MODELO_CHAT,
+  acumularToolCalls,
+  aToolCallsDeMensaje,
+  crearClienteOpenAI,
+  formatearEventoSSE,
+  parsearArgumentosTool,
+  type ToolCallAcumulada,
+} from "@/lib/ia/openai";
+import { clasificarLineaNdjson, separarLineasNdjson, type Insight } from "@/lib/ia/ndjson";
 
 export const runtime = "nodejs";
 
@@ -15,29 +21,11 @@ export const runtime = "nodejs";
 // /api/insights
 //
 // GET  ?mision_id=...   → última fila de insights_history (caché)
-// POST { mision_id }    → streaming SSE de un nuevo análisis con Claude
+// POST { mision_id }    → streaming SSE de un nuevo análisis con OpenAI
 //                          (incluye tool-use loop + persistencia al final)
 // =============================================================================
 
-const MODEL = "claude-opus-4-6";
-
-// -----------------------------------------------------------------------------
-// Tipos
-// -----------------------------------------------------------------------------
-
-export interface Insight {
-  tipo:
-    | "vacio"
-    | "oportunidad"
-    | "concentracion"
-    | "madurez"
-    | "cuello_botella"
-    | "fortaleza";
-  titulo: string;
-  descripcion: string;
-  prioridad: "alta" | "media" | "baja";
-  evidencia: string;
-}
+export type { Insight };
 
 export interface InsightsResponse {
   insights: Insight[];
@@ -93,41 +81,50 @@ REGLAS ESTRICTAS:
 // Tool definitions
 // =============================================================================
 
-const TOOLS: Tool[] = [
+const TOOLS: ChatCompletionFunctionTool[] = [
   {
-    name: "get_reto_detail",
-    description:
-      "Devuelve un reto con sus innovaciones vinculadas y el conteo de hallazgos por innovación. Úsalo si necesitas entender qué hay detrás de un reto concreto que te llama la atención.",
-    input_schema: {
-      type: "object",
-      properties: {
-        reto_id: { type: "string", description: "UUID del reto" },
+    type: "function",
+    function: {
+      name: "get_reto_detail",
+      description:
+        "Devuelve un reto con sus innovaciones vinculadas y el conteo de hallazgos por innovación. Úsalo si necesitas entender qué hay detrás de un reto concreto que te llama la atención.",
+      parameters: {
+        type: "object",
+        properties: {
+          reto_id: { type: "string", description: "UUID del reto" },
+        },
+        required: ["reto_id"],
       },
-      required: ["reto_id"],
     },
   },
   {
-    name: "get_innovacion_detail",
-    description:
-      "Devuelve una innovación con su descripción completa, estado, nivel de impacto y todos sus hallazgos. Úsalo si necesitas inspeccionar una innovación específica.",
-    input_schema: {
-      type: "object",
-      properties: {
-        innovacion_id: { type: "string", description: "UUID de la innovación" },
+    type: "function",
+    function: {
+      name: "get_innovacion_detail",
+      description:
+        "Devuelve una innovación con su descripción completa, estado, nivel de impacto y todos sus hallazgos. Úsalo si necesitas inspeccionar una innovación específica.",
+      parameters: {
+        type: "object",
+        properties: {
+          innovacion_id: { type: "string", description: "UUID de la innovación" },
+        },
+        required: ["innovacion_id"],
       },
-      required: ["innovacion_id"],
     },
   },
   {
-    name: "get_hallazgo_detail",
-    description:
-      "Devuelve un hallazgo con su descripción completa, evidencia cuantitativa, fuente y enlace. Úsalo si necesitas profundizar en una evidencia concreta.",
-    input_schema: {
-      type: "object",
-      properties: {
-        hallazgo_id: { type: "string", description: "UUID del hallazgo" },
+    type: "function",
+    function: {
+      name: "get_hallazgo_detail",
+      description:
+        "Devuelve un hallazgo con su descripción completa, evidencia cuantitativa, fuente y enlace. Úsalo si necesitas profundizar en una evidencia concreta.",
+      parameters: {
+        type: "object",
+        properties: {
+          hallazgo_id: { type: "string", description: "UUID del hallazgo" },
+        },
+        required: ["hallazgo_id"],
       },
-      required: ["hallazgo_id"],
     },
   },
 ];
@@ -177,10 +174,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Falta mision_id" }, { status: 400 });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
+  const client = crearClienteOpenAI();
+  if (!client) {
     return NextResponse.json(
-      { error: "ANTHROPIC_API_KEY no configurada en el servidor" },
+      { error: "OPENAI_API_KEY no configurada en el servidor" },
       { status: 500 },
     );
   }
@@ -199,28 +196,21 @@ export async function POST(req: Request) {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const send = (event: string, data: unknown) => {
-        controller.enqueue(
-          encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`),
-        );
+        controller.enqueue(encoder.encode(formatearEventoSSE(event, data)));
       };
 
       const collectedInsights: Insight[] = [];
       let collectedResumen = "";
 
+      // Líneas incompletas o inválidas se ignoran.
       const emitNdjsonLine = (line: string) => {
-        const trimmed = line.trim();
-        if (!trimmed) return;
-        try {
-          const obj = JSON.parse(trimmed);
-          if (typeof obj.resumen === "string") {
-            collectedResumen = obj.resumen;
-            send("resumen", { text: obj.resumen });
-          } else if (typeof obj.tipo === "string") {
-            collectedInsights.push(obj as Insight);
-            send("insight", obj);
-          }
-        } catch {
-          // línea incompleta o inválida — ignorar
+        const linea = clasificarLineaNdjson(line);
+        if (linea?.tipo === "resumen") {
+          collectedResumen = linea.texto;
+          send("resumen", { text: linea.texto });
+        } else if (linea?.tipo === "insight") {
+          collectedInsights.push(linea.insight);
+          send("insight", linea.insight);
         }
       };
 
@@ -305,9 +295,8 @@ export async function POST(req: Request) {
         // -------------------------------------------------------------------
         // 2. Loop de tool use con streaming
         // -------------------------------------------------------------------
-        const client = new Anthropic({ apiKey });
-
-        const messages: MessageParam[] = [
+        const messages: ChatCompletionMessageParam[] = [
+          { role: "system", content: SYSTEM_PROMPT },
           {
             role: "user",
             content: `Snapshot de la misión:\n\n${JSON.stringify(snapshot, null, 2)}`,
@@ -323,71 +312,72 @@ export async function POST(req: Request) {
           round += 1;
           send("status", { phase: round === 1 ? "thinking" : "writing" });
 
-          const messageStream = client.messages.stream({
-            model: MODEL,
-            max_tokens: 2000,
-            system: SYSTEM_PROMPT,
+          const completion = await client.chat.completions.create({
+            model: MODELO_CHAT,
+            max_completion_tokens: 2000,
+            stream: true,
+            stream_options: { include_usage: true },
             tools: TOOLS,
             messages,
           });
 
           let textBuffer = "";
+          let fullText = "";
+          let finishReason: string | null = null;
+          const toolCalls: ToolCallAcumulada[] = [];
 
-          for await (const event of messageStream) {
-            if (
-              event.type === "content_block_delta" &&
-              event.delta.type === "text_delta"
-            ) {
-              textBuffer += event.delta.text;
-              const lines = textBuffer.split("\n");
-              textBuffer = lines.pop() ?? "";
-              for (const line of lines) emitNdjsonLine(line);
+          for await (const chunk of completion) {
+            // El último chunk (include_usage) trae el uso y no tiene choices.
+            if (chunk.usage) {
+              totalInputTokens += chunk.usage.prompt_tokens;
+              totalOutputTokens += chunk.usage.completion_tokens;
+            }
+            const choice = chunk.choices[0];
+            if (!choice) continue;
+            if (choice.finish_reason) finishReason = choice.finish_reason;
+            acumularToolCalls(toolCalls, choice.delta?.tool_calls);
+
+            const text = choice.delta?.content;
+            if (text) {
+              fullText += text;
+              const { lineas, resto } = separarLineasNdjson(textBuffer + text);
+              textBuffer = resto;
+              for (const line of lineas) emitNdjsonLine(line);
             }
           }
 
           // Flush del buffer final
           if (textBuffer.trim()) emitNdjsonLine(textBuffer);
 
-          const finalMsg = await messageStream.finalMessage();
-          totalInputTokens += finalMsg.usage.input_tokens;
-          totalOutputTokens += finalMsg.usage.output_tokens;
-
-          if (finalMsg.stop_reason !== "tool_use") {
-            // Claude terminó de generar → salir del loop
+          const llamadas = aToolCallsDeMensaje(toolCalls);
+          if (finishReason !== "tool_calls" || llamadas.length === 0) {
+            // El modelo terminó de generar → salir del loop
             break;
           }
 
           // -----------------------------------------------------------------
-          // Hay tool_use → ejecutar tools y continuar
+          // Hay tool calls → ejecutar tools y continuar
           // -----------------------------------------------------------------
-          const toolUses = finalMsg.content.filter(
-            (b): b is ToolUseBlock => b.type === "tool_use",
-          );
+          messages.push({
+            role: "assistant",
+            content: fullText || null,
+            tool_calls: llamadas,
+          });
 
-          const toolResults: ToolResultBlockParam[] = [];
-          for (const tu of toolUses) {
+          for (const llamada of llamadas) {
+            const input = parsearArgumentosTool(llamada.function.arguments);
             send("status", {
               phase: "tool_call",
-              tool: tu.name,
-              input: tu.input,
+              tool: llamada.function.name,
+              input,
             });
-            const result = await executeTool(supabase, tu.name, tu.input);
-            toolResults.push({
-              type: "tool_result",
-              tool_use_id: tu.id,
+            const result = await executeTool(supabase, llamada.function.name, input);
+            messages.push({
+              role: "tool",
+              tool_call_id: llamada.id,
               content: JSON.stringify(result),
             });
           }
-
-          // Append a la conversación: assistant message + tool_results
-          messages.push({
-            role: "assistant",
-            content: finalMsg.content,
-          });
-          messages.push({
-            role: "user",
-            content: toolResults,
-          });
         }
 
         // -------------------------------------------------------------------
@@ -399,7 +389,7 @@ export async function POST(req: Request) {
             mision_id: misionId,
             resumen: collectedResumen || null,
             insights: collectedInsights,
-            model: MODEL,
+            model: MODELO_CHAT,
             tokens_input: totalInputTokens,
             tokens_output: totalOutputTokens,
             generated_by: user?.id ?? null,
@@ -415,8 +405,8 @@ export async function POST(req: Request) {
           },
         });
         controller.close();
-      } catch (e: any) {
-        send("error", { message: e?.message ?? "Error inesperado" });
+      } catch (e) {
+        send("error", { message: e instanceof Error ? e.message : "Error inesperado" });
         controller.close();
       }
     },

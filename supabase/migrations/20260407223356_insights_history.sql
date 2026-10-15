@@ -1,17 +1,17 @@
 -- =============================================================================
 -- Tabla `insights_history`: persistencia de los análisis de IA generados
--- por Claude. Cada fila es una ejecución completa del endpoint /api/insights
+-- por el modelo de IA. Cada fila es una ejecución completa del endpoint /api/insights
 -- para una misión.
 --
 -- Actúa también como caché: el cliente carga la fila más reciente al abrir
--- el dashboard sin volver a consumir tokens de Anthropic.
+-- el dashboard sin volver a consumir tokens del proveedor de IA.
 -- =============================================================================
 
 CREATE TABLE insights_history (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     mision_id UUID NOT NULL REFERENCES misiones(id) ON DELETE CASCADE,
 
-    -- Output de Claude
+    -- Output del modelo de IA
     resumen TEXT,
     insights JSONB NOT NULL DEFAULT '[]'::jsonb,
 

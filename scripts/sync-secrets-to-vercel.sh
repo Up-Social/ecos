@@ -63,14 +63,11 @@ push NEXT_PUBLIC_SUPABASE_ANON_KEY --no-sensitive production preview development
 # alias usado en .env.deploy
 update_envfiles SUPABASE_ANON_KEY "$(getval NEXT_PUBLIC_SUPABASE_ANON_KEY)"
 
-echo "→ OPENAI_API_KEY (sensible)"
-push OPENAI_API_KEY --sensitive production development
-
-echo "→ ANTHROPIC_API_KEY (sensible)"
-push ANTHROPIC_API_KEY --sensitive production preview development
+echo "→ OPENAI_API_KEY (sensible; único proveedor de IA)"
+push OPENAI_API_KEY --sensitive production preview development
 
 echo
 echo "=== Estado final en Vercel ==="
-vercel env ls 2>/dev/null | grep -iE "name|OPENAI|ANTHROPIC|SERVICE_ROLE|ANON|CRON" || true
+vercel env ls 2>/dev/null | grep -iE "name|OPENAI|SERVICE_ROLE|ANON|CRON" || true
 echo
 echo "Hecho. Siguiente: redesplegar producción y luego DESACTIVAR las keys legacy en Supabase."

@@ -78,25 +78,17 @@ if [ -n "$V" ]; then
 fi
 unset V
 
-# 2) OPENAI_API_KEY (Production + Development) — sensible
+# 2) OPENAI_API_KEY (Production + Preview + Development) — sensible
+#    Único proveedor de IA: chat, insights y embeddings.
 V=$(ask "OPENAI_API_KEY nuevo")
 if [ -n "$V" ]; then
   echo "→ OPENAI_API_KEY"
-  set_vercel OPENAI_API_KEY "$V" --sensitive production development
+  set_vercel OPENAI_API_KEY "$V" --sensitive production preview development
   update_envfiles OPENAI_API_KEY "$V"
 fi
 unset V
 
-# 3) ANTHROPIC_API_KEY (Production + Preview + Development) — sensible
-V=$(ask "ANTHROPIC_API_KEY nuevo")
-if [ -n "$V" ]; then
-  echo "→ ANTHROPIC_API_KEY"
-  set_vercel ANTHROPIC_API_KEY "$V" --sensitive production preview development
-  update_envfiles ANTHROPIC_API_KEY "$V"
-fi
-unset V
-
-# 4) Publishable key → NEXT_PUBLIC_SUPABASE_ANON_KEY — PÚBLICA, NO sensible.
+# 3) Publishable key → NEXT_PUBLIC_SUPABASE_ANON_KEY — PÚBLICA, NO sensible.
 #    Al migrar a las keys nuevas, la anon se sustituye por la Publishable key.
 echo
 echo "Migración a keys nuevas de Supabase: la anon se reemplaza por la Publishable key."
@@ -111,7 +103,7 @@ unset V
 
 echo
 echo "=== Estado final de variables en Vercel ==="
-vercel env ls 2>/dev/null | grep -iE "name|OPENAI|ANTHROPIC|SERVICE_ROLE|ANON|CRON" || true
+vercel env ls 2>/dev/null | grep -iE "name|OPENAI|SERVICE_ROLE|ANON|CRON" || true
 
 echo
 echo "Hecho. Ahora redespliega producción (tu script / dashboard) para que tome los nuevos valores."

@@ -355,7 +355,7 @@ export function AIInsights() {
 
           {!streaming && data.insights.length > 0 && (
             <p className="pt-1 text-right text-[10px] text-slate-400">
-              Generado por Claude · {data.insights.length} insights
+              Generado por IA · {data.insights.length} insights
             </p>
           )}
         </div>

@@ -6,7 +6,7 @@ import type { EntityType } from "@/lib/supabase/types";
 // Pipeline GraphRAG (Fase 13) — SOLO SERVER.
 //
 // Pasos: 1) recuperación vectorial · 2) expansión relacional · 3) reranking
-//        · 4) context builder. (El paso 5, respuesta de Claude, vive en la route.)
+//        · 4) context builder. (El paso 5, respuesta del modelo de IA, vive en la route.)
 //
 // Combina SQL (documentos de entidad) + Knowledge Graph (relationships) +
 // Embeddings (match_embeddings). Respeta la visibilidad: onlyPublic = !panel.

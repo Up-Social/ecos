@@ -2,40 +2,48 @@
   "name": "ecos-admin",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "types:gen": "supabase gen types typescript --project-id $SUPABASE_PROJECT_REF --schema public > lib/supabase/database.types.ts"
+    "types:gen": "supabase gen types typescript --project-id $SUPABASE_PROJECT_REF --schema public > lib/supabase/database.types.ts",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.85.0",
-    "@hookform/resolvers": "^3.9.1",
+    "@hookform/resolvers": "^3.10.0",
     "@supabase/ssr": "^0.5.2",
-    "@supabase/supabase-js": "^2.45.4",
-    "@tanstack/react-table": "^8.20.5",
+    "@supabase/supabase-js": "^2.117.3",
+    "@tanstack/react-table": "^8.21.3",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "@xyflow/react": "^12.11.0",
+    "@xyflow/react": "^12.12.0",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.453.0",
-    "mapbox-gl": "^3.24.0",
-    "next": "^15.1.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-hook-form": "^7.53.1",
-    "recharts": "^3.8.1",
-    "tailwind-merge": "^2.5.4",
-    "zod": "^3.23.8"
+    "lucide-react": "^1.57.0",
+    "mapbox-gl": "^3.33.0",
+    "next": "^15.5.28",
+    "openai": "^7.34.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-hook-form": "^7.90.0",
+    "recharts": "^3.10.1",
+    "tailwind-merge": "^2.6.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/node": "^22.8.6",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.14",
-    "typescript": "^5.6.3"
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.30",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.4"
+  },
+  "volta": {
+    "node": "24.22.0"
   }
 }

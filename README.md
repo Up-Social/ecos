@@ -22,7 +22,7 @@ npm install
 # 2. Variables de entorno
 cp .env.example .env.local   # (o crea .env.local manualmente)
 # Rellena: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
-#         SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY
+#         SUPABASE_SERVICE_ROLE_KEY, OPENAI_API_KEY
 
 # 3. Supabase local (opcional)
 supabase start
@@ -78,10 +78,10 @@ El repo incluye archivos de configuración para [Claude Code](https://claude.com
 
 ## Stack
 
-- Next.js 15 · React 19 · TypeScript 5.6 · Tailwind 3.4
+- Node.js 24 LTS · Next.js 15 · React 19 · TypeScript 5.9 · Tailwind 3.4
 - Supabase (PostgreSQL 17, Auth, Storage, Edge Functions Deno)
 - react-hook-form · Zod · @tanstack/react-table · recharts · lucide-react
-- @anthropic-ai/sdk (insights con Claude)
+- openai (`gpt-6-luna` para chat e insights; `text-embedding-3-small` para embeddings)
 
 ## Licencia
 
