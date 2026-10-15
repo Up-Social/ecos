@@ -80,7 +80,17 @@ El repo incluye archivos de configuración para [Claude Code](https://claude.com
 
 - Node.js 24 LTS · Next.js 16 (webpack) · React 19 · TypeScript 5.9 · Tailwind 4
 - Supabase (PostgreSQL 17, Auth, Storage, Edge Functions Deno)
-- react-hook-form · Zod · @tanstack/react-table · recharts · lucide-react
+- react-hook-form · Zod 4 · @tanstack/react-table 9 · recharts · lucide-react
+
+**Por qué TypeScript sigue en 5.9**: Next 16.4 ya admite TypeScript 7 (el build usa el `tsc` del
+proyecto y el proyecto compila con 7.0), pero `typescript-eslint`, que llega con
+`eslint-config-next`, aún no lo soporta (peer `<6.1.0`; con 7.0 `npm run lint` aborta) y el
+plugin de Next para el editor necesita la API JavaScript que TypeScript 7 todavía no publica.
+Revisar cuando `typescript-eslint` admita TypeScript 7.
+
+**Override de `fast-glob`**: `@next/eslint-plugin-next` fija `fast-glob@3.3.1`, que arrastra
+`braces` con un aviso alto sin versión corregida. Solo usa `globSync(…, { onlyDirectories })`,
+así que `package.json` lo sustituye por `tinyglobby` (misma función, sin `braces`).
 - openai (`gpt-6-luna` para chat e insights; `text-embedding-3-small` para embeddings)
 
 ## Licencia

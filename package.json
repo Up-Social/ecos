@@ -47,5 +47,10 @@
   },
   "volta": {
     "node": "24.22.0"
+  },
+  "overrides": {
+    "@next/eslint-plugin-next": {
+      "fast-glob": "npm:tinyglobby@^0.2.15"
+    }
   }
 }
