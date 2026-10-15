@@ -1,6 +1,6 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Columna } from "@/components/data-table/features";
 import { ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import type { Agente, TipoAgente } from "@/lib/supabase/types";
@@ -19,7 +19,7 @@ const tipoTone: Record<TipoAgente, "blue" | "green" | "purple" | "amber"> = {
   sector_privado: "amber",
 };
 
-export const agentesColumns: ColumnDef<Agente>[] = [
+export const agentesColumns: Columna<Agente>[] = [
   {
     accessorKey: "external_id",
     header: "ID",

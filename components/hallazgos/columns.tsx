@@ -1,6 +1,6 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Columna } from "@/components/data-table/features";
 import { CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import type {
@@ -22,7 +22,7 @@ const evidenciaTone: Record<NivelEvidencia, "slate" | "blue" | "purple" | "green
   evidencia_replicada: "green",
 };
 
-export const hallazgosColumns: ColumnDef<HallazgoConRelaciones>[] = [
+export const hallazgosColumns: Columna<HallazgoConRelaciones>[] = [
   {
     accessorKey: "titulo",
     header: "Título",

@@ -2,23 +2,19 @@
 
 import { useState } from "react";
 import {
-  type ColumnDef,
   type SortingState,
   type ColumnFiltersState,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+  useTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
+import { tablaFeatures, type Columna } from "./features";
 
-interface DataTableProps<TData> {
-  columns: ColumnDef<TData, unknown>[];
+interface DataTableProps<TData extends object> {
+  columns: Columna<TData>[];
   data: TData[];
   searchKey?: keyof TData & string;
   searchPlaceholder?: string;
@@ -27,7 +23,7 @@ interface DataTableProps<TData> {
   emptyMessage?: string;
 }
 
-export function DataTable<TData>({
+export function DataTable<TData extends object>({
   columns,
   data,
   searchKey,
@@ -40,18 +36,15 @@ export function DataTable<TData>({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
 
-  const table = useReactTable({
+  const table = useTable({
+    features: tablaFeatures,
     data,
     columns,
     state: { sorting, columnFilters, globalFilter },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 20 } },
+    initialState: { pagination: { pageIndex: 0, pageSize: 20 } },
   });
 
   return (
@@ -89,9 +82,7 @@ export function DataTable<TData>({
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id}>
                 {hg.headers.map((header) => {
-                  const meta = header.column.columnDef.meta as
-                    | { width?: string; cellClassName?: string }
-                    | undefined;
+                  const meta = header.column.columnDef.meta;
                   return (
                     <th
                       key={header.id}
@@ -142,10 +133,8 @@ export function DataTable<TData>({
                     onRowClick && "cursor-pointer hover:bg-slate-50",
                   )}
                 >
-                  {row.getVisibleCells().map((cell) => {
-                    const meta = cell.column.columnDef.meta as
-                      | { width?: string; cellClassName?: string }
-                      | undefined;
+                  {row.getAllCells().map((cell) => {
+                    const meta = cell.column.columnDef.meta;
                     return (
                       <td
                         key={cell.id}
@@ -167,7 +156,7 @@ export function DataTable<TData>({
 
       <div className="flex items-center justify-between text-xs text-slate-500">
         <span>
-          Página {table.getState().pagination.pageIndex + 1} de{" "}
+          Página {table.state.pagination.pageIndex + 1} de{" "}
           {table.getPageCount() || 1} · {table.getFilteredRowModel().rows.length}{" "}
           registros
         </span>

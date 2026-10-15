@@ -1,10 +1,10 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Columna } from "@/components/data-table/features";
 import { Badge } from "@/components/ui/Badge";
 import type { RetoConRelaciones } from "@/lib/supabase/types";
 
-export const retosColumns: ColumnDef<RetoConRelaciones>[] = [
+export const retosColumns: Columna<RetoConRelaciones>[] = [
   {
     accessorKey: "nombre",
     header: "Nombre",

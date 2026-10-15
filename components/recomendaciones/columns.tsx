@@ -1,6 +1,6 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Columna } from "@/components/data-table/features";
 import { Badge } from "@/components/ui/Badge";
 import {
   ALCANCE_TERRITORIAL_LABELS,
@@ -21,7 +21,7 @@ const estadoTone: Record<EstadoRecomendacion, "slate" | "blue" | "green" | "red"
   descartada: "red",
 };
 
-export const recomendacionesColumns: ColumnDef<RecomendacionConRelaciones>[] = [
+export const recomendacionesColumns: Columna<RecomendacionConRelaciones>[] = [
   {
     accessorKey: "titulo",
     header: "Título",

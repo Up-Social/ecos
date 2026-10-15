@@ -1,6 +1,6 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Columna } from "@/components/data-table/features";
 import { Badge } from "@/components/ui/Badge";
 import type {
   InnovacionConRelaciones,
@@ -26,7 +26,7 @@ const estadoLabel: Record<EstadoInnovacion, string> = {
   escalado: "Escalado",
 };
 
-export const innovacionesColumns: ColumnDef<InnovacionConRelaciones>[] = [
+export const innovacionesColumns: Columna<InnovacionConRelaciones>[] = [
   {
     accessorKey: "external_id",
     header: "ID",
