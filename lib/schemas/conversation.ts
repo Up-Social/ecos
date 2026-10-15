@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "./zod";
 
 // -----------------------------------------------------------------------------
 // Schemas Zod de conversaciones (Fase 09). Solo persistencia (sin IA).
@@ -16,7 +16,7 @@ export const conversationRenameSchema = z.object({
 export const messageRoleEnum = z.enum(["user", "assistant", "system"]);
 
 export const messageCreateSchema = z.object({
-  conversation_id: z.string().uuid(),
+  conversation_id: z.uuid(),
   role: messageRoleEnum,
   content: z.string().min(1, "El mensaje no puede estar vacío"),
 });

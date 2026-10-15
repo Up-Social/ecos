@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "./zod";
 
 export const misionSchema = z.object({
   nombre: z.string().min(2, "El nombre es obligatorio"),

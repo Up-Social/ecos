@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "./zod";
 import {
   ALCANCE_TERRITORIAL,
   ESTADO_RECOMENDACION,
@@ -16,7 +16,7 @@ export const recomendacionSchema = z.object({
   destinatarios: z.string().optional().nullable(),
   alcance: alcanceEnum.nullable().optional(),
   estado: estadoRecomendacionEnum.nullable().optional(),
-  hallazgos_ids: z.array(z.string().uuid()).default([]),
+  hallazgos_ids: z.array(z.uuid()).default([]),
 });
 
 export type RecomendacionFormValues = z.input<typeof recomendacionSchema>;

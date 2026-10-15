@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "./zod";
 import { ROLE_KEYS } from "@/lib/auth/roles";
 
 export const roleKeyEnum = z.enum(ROLE_KEYS as [string, ...string[]]);
@@ -13,7 +13,7 @@ const baseFields = {
 
 // Crear: email + password obligatorios
 export const usuarioCreateSchema = z.object({
-  email: z.string().email("Email no válido"),
+  email: z.email("Email no válido"),
   password: z
     .string()
     .min(8, "La contraseña debe tener al menos 8 caracteres"),
@@ -22,14 +22,14 @@ export const usuarioCreateSchema = z.object({
 
 // Editar: email/password no se editan aquí
 export const usuarioUpdateSchema = z.object({
-  email: z.string().email().optional(),
+  email: z.email().optional(),
   password: z.string().optional().or(z.literal("")),
   ...baseFields,
 });
 
 // Schema unificado para el form (las validaciones varían según modo)
 export const usuarioFormSchema = z.object({
-  email: z.string().email("Email no válido"),
+  email: z.email("Email no válido"),
   password: z.string().optional().or(z.literal("")),
   ...baseFields,
 });
