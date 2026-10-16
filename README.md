@@ -39,6 +39,8 @@ App disponible en http://localhost:3000.
 npm run dev          # Desarrollo
 npm run build        # Build de producción
 npm run lint         # ESLint (config plana eslint.config.mjs)
+npm test             # Pruebas unitarias (Vitest)
+SMOKE_URL=https://… npm run test:smoke  # Smoke tests de solo lectura contra un despliegue
 npm run types:gen    # Regenera lib/supabase/database.types.ts (necesita SUPABASE_PROJECT_REF)
 ./deploy.sh          # Aplica migrations + despliega Edge Functions al Supabase remoto
 ```
