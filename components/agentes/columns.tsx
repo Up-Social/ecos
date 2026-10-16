@@ -1,6 +1,6 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Columna } from "@/components/data-table/features";
 import { ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import type { Agente, TipoAgente } from "@/lib/supabase/types";
@@ -19,7 +19,7 @@ const tipoTone: Record<TipoAgente, "blue" | "green" | "purple" | "amber"> = {
   sector_privado: "amber",
 };
 
-export const agentesColumns: ColumnDef<Agente>[] = [
+export const agentesColumns: Columna<Agente>[] = [
   {
     accessorKey: "external_id",
     header: "ID",
@@ -93,7 +93,7 @@ export const agentesColumns: ColumnDef<Agente>[] = [
           className="inline-flex items-center gap-1 text-slate-700 hover:text-brand-600"
         >
           {row.original.web.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-          <ExternalLink className="h-3 w-3 flex-shrink-0" />
+          <ExternalLink className="h-3 w-3 shrink-0" />
         </a>
       ) : (
         <span className="text-slate-400">—</span>

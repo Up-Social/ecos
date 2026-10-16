@@ -154,7 +154,7 @@ export default function ImportarPage() {
             o nombre con contenido modificado, la importación se detiene.
           </p>
         </div>
-        <div className="flex flex-shrink-0 items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <a
             href="/templates/ECOS_Plantilla.xlsx"
             download
@@ -178,7 +178,7 @@ export default function ImportarPage() {
       {/* ------------------------------------------------------------------- */}
       <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-4">
         <div className="flex items-start gap-3">
-          <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0 text-brand-600" />
+          <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" />
           <div>
             <p className="text-sm font-medium text-slate-900">
               Geolocalizar entidades
@@ -195,7 +195,7 @@ export default function ImportarPage() {
           variant="secondary"
           onClick={handleGeocodificar}
           disabled={geocoding}
-          className="flex-shrink-0"
+          className="shrink-0"
         >
           <MapPin className="h-4 w-4" />
           {geocoding ? "Geolocalizando…" : "Geolocalizar"}
@@ -255,7 +255,7 @@ export default function ImportarPage() {
           <button
             type="button"
             onClick={clearFile}
-            className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-sm p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
             aria-label="Quitar archivo"
           >
             <X className="h-4 w-4" />
@@ -272,7 +272,7 @@ export default function ImportarPage() {
             type="checkbox"
             checked={dryRun}
             onChange={(e) => setDryRun(e.target.checked)}
-            className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+            className="h-4 w-4 rounded-sm border-slate-300 text-brand-600 focus:ring-brand-500"
           />
           <Eye className="h-4 w-4 text-slate-400" />
           <span>
@@ -430,7 +430,7 @@ function ResultCard({ result }: { result: ImportResult }) {
         <div className="divide-y divide-slate-100">
           {validationErrors.map((err, idx) => (
             <div key={idx} className="flex gap-3 px-4 py-3">
-              <div className="flex-shrink-0 pt-0.5">
+              <div className="shrink-0 pt-0.5">
                 <Badge tone={err.type === "modified" ? "amber" : "red"}>
                   {err.sheet}
                   {err.row ? ` · fila ${err.row}` : ""}

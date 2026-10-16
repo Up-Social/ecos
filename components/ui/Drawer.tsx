@@ -112,7 +112,7 @@ export function Drawer({
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="rounded-sm p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500"
             aria-label="Cerrar"
           >
             <X className="h-5 w-5" />

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Columna } from "@/components/data-table/features";
 import { Badge } from "@/components/ui/Badge";
 import { ROLE_LABELS, type RoleKey } from "@/lib/auth/roles";
 import type { Usuario } from "@/lib/queries/usuarios";
@@ -11,7 +11,7 @@ const roleTone: Record<RoleKey, "purple" | "blue" | "slate"> = {
   usuario: "slate",
 };
 
-export const usuariosColumns: ColumnDef<Usuario>[] = [
+export const usuariosColumns: Columna<Usuario>[] = [
   {
     id: "nombre_completo",
     header: "Nombre y apellidos",
@@ -23,7 +23,7 @@ export const usuariosColumns: ColumnDef<Usuario>[] = [
       const apellidos = row.original.apellidos ?? "";
       const full = `${nombre} ${apellidos}`.trim();
       return (
-        <span className="block whitespace-normal break-words font-medium text-slate-900">
+        <span className="block whitespace-normal wrap-break-word font-medium text-slate-900">
           {full || <span className="text-slate-400">—</span>}
         </span>
       );

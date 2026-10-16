@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Columna } from "@/components/data-table/features";
 import { Plus, ArrowRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -130,7 +130,7 @@ export function RelationshipsTab({ entityType, entityId }: Props) {
     [relationships, labels, entityType, entityId],
   );
 
-  const columns: ColumnDef<Row>[] = useMemo(
+  const columns: Columna<Row>[] = useMemo(
     () => [
       {
         accessorKey: "relationship_type",
@@ -243,7 +243,7 @@ export function RelationshipsTab({ entityType, entityId }: Props) {
         <p className="text-xs text-slate-400">Cargando relaciones…</p>
       ) : (
         <DataTable<Row>
-          columns={columns as ColumnDef<Row, unknown>[]}
+          columns={columns}
           data={rows}
           onRowClick={openEdit}
           emptyMessage="Esta entidad aún no tiene relaciones. Pulsa «Añadir relación» para crear una."

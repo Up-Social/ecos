@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Ban, CheckCircle2 } from "lucide-react";
 import { Field, Input } from "@/components/ui/Input";
@@ -43,7 +43,12 @@ export function UsuarioForm({
     reset,
     formState: { errors },
   } = useForm<UsuarioFormValues>({
-    resolver: zodResolver(isEdit ? usuarioUpdateSchema : usuarioCreateSchema),
+    // En edición el email va deshabilitado (react-hook-form no lo envía), por eso
+    // su schema lo marca opcional. Con resolvers 5 los tipos de entrada difieren
+    // y hay que unificarlos en el tipo del formulario.
+    resolver: (isEdit
+      ? zodResolver(usuarioUpdateSchema)
+      : zodResolver(usuarioCreateSchema)) as Resolver<UsuarioFormValues>,
     defaultValues: {
       email: "",
       password: "",
@@ -128,7 +133,7 @@ export function UsuarioForm({
                   >
                     <input
                       type="checkbox"
-                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                      className="mt-0.5 h-4 w-4 rounded-sm border-slate-300 text-brand-600 focus:ring-brand-500"
                       checked={selected.has(key)}
                       onChange={(e) => toggle(key, e.target.checked)}
                     />

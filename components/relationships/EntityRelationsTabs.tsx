@@ -74,7 +74,7 @@ function TabButton({
       aria-selected={active}
       onClick={onClick}
       className={cn(
-        "-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
+        "-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500",
         active
           ? "border-brand-600 text-slate-900"
           : "border-transparent text-slate-500 hover:text-slate-700",

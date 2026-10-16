@@ -1,6 +1,6 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Columna } from "@/components/data-table/features";
 import { Badge } from "@/components/ui/Badge";
 import { ESTADO_PROYECTO_LABELS } from "@/lib/enums";
 import type { ProyectoConLider, EstadoProyecto } from "@/lib/supabase/types";
@@ -14,7 +14,7 @@ const estadoTone: Record<EstadoProyecto, "slate" | "blue" | "green" | "purple"> 
 
 const estadoLabel = ESTADO_PROYECTO_LABELS;
 
-export const proyectosColumns: ColumnDef<ProyectoConLider>[] = [
+export const proyectosColumns: Columna<ProyectoConLider>[] = [
   {
     accessorKey: "external_id",
     header: "ID",

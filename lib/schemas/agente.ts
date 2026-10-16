@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "./zod";
 import {
   TIPO_AGENTE,
   ROL_ECOSISTEMA,
@@ -14,13 +14,11 @@ export const agenteSchema = z.object({
   descripcion: z.string().optional().nullable(),
   tipo_agente: tipoAgenteEnum.nullable().optional(),
   email: z
-    .string()
     .email("Email no válido")
     .optional()
     .nullable()
     .or(z.literal("")),
   web: z
-    .string()
     .url("URL no válida")
     .optional()
     .nullable()

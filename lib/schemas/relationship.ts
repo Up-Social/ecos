@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "./zod";
 
 // -----------------------------------------------------------------------------
 // Schemas Zod del Knowledge Graph (Fase 03).
@@ -56,10 +56,10 @@ export type RelationshipTypeFormValues = z.input<typeof relationshipTypeSchema>;
 export const relationshipSchema = z
   .object({
     source_entity_type: entityTypeEnum,
-    source_entity_id: z.string().uuid("Selecciona la entidad de origen"),
-    relationship_type_id: z.string().uuid("Selecciona el tipo de relación"),
+    source_entity_id: z.uuid("Selecciona la entidad de origen"),
+    relationship_type_id: z.uuid("Selecciona el tipo de relación"),
     target_entity_type: entityTypeEnum,
-    target_entity_id: z.string().uuid("Selecciona la entidad de destino"),
+    target_entity_id: z.uuid("Selecciona la entidad de destino"),
     description: z.string().optional().nullable(),
   })
   .refine(
@@ -69,7 +69,7 @@ export const relationshipSchema = z
         v.source_entity_id === v.target_entity_id
       ),
     {
-      message: "Una entidad no puede relacionarse consigo misma",
+      error: "Una entidad no puede relacionarse consigo misma",
       path: ["target_entity_id"],
     },
   );

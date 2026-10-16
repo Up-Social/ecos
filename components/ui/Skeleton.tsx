@@ -5,7 +5,7 @@ export function Skeleton({ className }: { className?: string }) {
     <div
       role="status"
       aria-label="Cargando"
-      className={cn("animate-pulse rounded bg-slate-200", className)}
+      className={cn("animate-pulse rounded-sm bg-slate-200", className)}
     />
   );
 }

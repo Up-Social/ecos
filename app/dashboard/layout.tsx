@@ -10,7 +10,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Doble check además del middleware (defensa en profundidad)
+  // Doble check además del proxy (defensa en profundidad)
   const current = await getCurrentUserWithRoles();
   if (!current) {
     redirect("/admin/login");

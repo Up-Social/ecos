@@ -1,6 +1,39 @@
 /* Estilos base de Mapbox GL (mapa público del portal /explorar). */
-@import "mapbox-gl/dist/mapbox-gl.css";
+@import "mapbox-gl/dist/mapbox-gl.css" layer(base);
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #f0f9ff;
+  --color-brand-100: #e0f2fe;
+  --color-brand-500: #0ea5e9;
+  --color-brand-600: #0284c7;
+  --color-brand-700: #0369a1;
+}
+
+/*
+  Compatibilidad con los valores por defecto de Tailwind 3, para que la UI se
+  vea igual tras pasar a la v4:
+  - Borde: la v4 usa `currentcolor`; la v3, gray-200.
+  - Placeholder: la v4 usa el color del texto al 50 %; la v3, gray-400.
+  - Botones: la v4 deja el cursor por defecto; la v3 ponía `pointer`.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}

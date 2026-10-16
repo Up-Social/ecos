@@ -1,16 +1,16 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Columna } from "@/components/data-table/features";
 import { Badge } from "@/components/ui/Badge";
 import type { Mision } from "@/lib/supabase/types";
 
-export const misionesColumns: ColumnDef<Mision>[] = [
+export const misionesColumns: Columna<Mision>[] = [
   {
     accessorKey: "nombre",
     header: "Nombre",
     meta: { width: "40%" },
     cell: ({ row }) => (
-      <span className="block whitespace-normal break-words font-medium text-slate-900">
+      <span className="block whitespace-normal wrap-break-word font-medium text-slate-900">
         {row.original.nombre}
       </span>
     ),

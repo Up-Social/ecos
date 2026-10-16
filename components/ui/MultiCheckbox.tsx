@@ -50,7 +50,7 @@ export function MultiCheckbox<V extends string>({
         >
           <input
             type="checkbox"
-            className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+            className="h-4 w-4 rounded-sm border-slate-300 text-brand-600 focus:ring-brand-500"
             checked={selected.has(opt.value)}
             onChange={(e) => toggle(opt.value, e.target.checked)}
           />

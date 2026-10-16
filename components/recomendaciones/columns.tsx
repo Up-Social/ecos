@@ -1,6 +1,6 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Columna } from "@/components/data-table/features";
 import { Badge } from "@/components/ui/Badge";
 import {
   ALCANCE_TERRITORIAL_LABELS,
@@ -21,14 +21,14 @@ const estadoTone: Record<EstadoRecomendacion, "slate" | "blue" | "green" | "red"
   descartada: "red",
 };
 
-export const recomendacionesColumns: ColumnDef<RecomendacionConRelaciones>[] = [
+export const recomendacionesColumns: Columna<RecomendacionConRelaciones>[] = [
   {
     accessorKey: "titulo",
     header: "Título",
     meta: { width: "50%" },
     cell: ({ row }) => (
       <div>
-        <div className="whitespace-normal break-words font-medium text-slate-900">
+        <div className="whitespace-normal wrap-break-word font-medium text-slate-900">
           {row.original.titulo}
         </div>
         <div className="line-clamp-2 text-xs text-slate-500">

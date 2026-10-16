@@ -15,7 +15,7 @@ import { PANEL_ROLES, type RoleKey } from "@/lib/auth/roles";
 
 // =============================================================================
 // `/cambiar-password` — cambio de contraseña OBLIGATORIO en el primer acceso.
-// El middleware redirige aquí a cualquier usuario con `must_change_password`.
+// El proxy redirige aquí a cualquier usuario con `must_change_password`.
 // Al fijar una contraseña nueva se limpia el flag y se redirige según el rol
 // (panel → /dashboard, resto → /asistente).
 // =============================================================================

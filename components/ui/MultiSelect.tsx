@@ -54,7 +54,7 @@ export function MultiSelect({
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          "flex w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:bg-slate-50",
+          "flex w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm focus:border-brand-500 focus:outline-hidden focus:ring-1 focus:ring-brand-500 disabled:bg-slate-50",
           selected.length === 0 && "text-slate-400",
         )}
       >
@@ -63,7 +63,7 @@ export function MultiSelect({
           {selected.map((s) => (
             <span
               key={s.value}
-              className="inline-flex items-center gap-1 rounded bg-brand-100 px-1.5 py-0.5 text-xs text-brand-700"
+              className="inline-flex items-center gap-1 rounded-sm bg-brand-100 px-1.5 py-0.5 text-xs text-brand-700"
             >
               {s.label}
               <X
@@ -85,7 +85,7 @@ export function MultiSelect({
             placeholder="Buscar…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border-b border-slate-100 px-3 py-2 text-sm focus:outline-none"
+            className="w-full border-b border-slate-100 px-3 py-2 text-sm focus:outline-hidden"
           />
           <ul className="max-h-60 overflow-auto py-1">
             {filtered.length === 0 && (

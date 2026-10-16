@@ -242,7 +242,7 @@ export function AsistenteClient() {
               <div
                 key={c.id}
                 className={`group mb-1 flex items-center gap-2 rounded-md px-2 py-2 text-sm ${
-                  activeId === c.id ? "bg-white shadow-sm" : "hover:bg-white/70"
+                  activeId === c.id ? "bg-white shadow-xs" : "hover:bg-white/70"
                 }`}
               >
                 <MessageSquare className="h-4 w-4 shrink-0 text-slate-400" />
@@ -309,7 +309,7 @@ export function AsistenteClient() {
               rows={1}
               placeholder="Escribe tu pregunta…"
               disabled={sending}
-              className="max-h-40 flex-1 resize-none rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:bg-slate-50"
+              className="max-h-40 flex-1 resize-none rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-1 focus:ring-brand-500 disabled:bg-slate-50"
             />
             <Button onClick={send} disabled={sending || !input.trim()}>
               <Send className="h-4 w-4" />

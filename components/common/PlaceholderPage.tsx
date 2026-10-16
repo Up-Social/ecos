@@ -16,7 +16,7 @@ export function PlaceholderPage({ title, description }: Props) {
         <Construction className="h-10 w-10 text-slate-400" />
         <p className="text-sm font-medium text-slate-600">Sección en construcción</p>
         <p className="max-w-sm text-xs text-slate-400">
-          Replica el patrón de <code className="rounded bg-slate-100 px-1">proyectos</code>{" "}
+          Replica el patrón de <code className="rounded-sm bg-slate-100 px-1">proyectos</code>{" "}
           (columns + Form + Drawer + Client) para implementar esta entidad.
         </p>
       </div>

@@ -23,7 +23,7 @@ export const CheckboxCard = forwardRef<HTMLInputElement, Props>(
       <input
         ref={ref}
         type="checkbox"
-        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+        className="mt-0.5 h-4 w-4 rounded-sm border-slate-300 text-brand-600 focus:ring-brand-500"
         {...props}
       />
       <span className="min-w-0">
